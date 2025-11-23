@@ -1,0 +1,62 @@
+import xml.etree.ElementTree as ET
+from datetime import datetime
+import sys
+
+def parse_dmarc_xml(file_path):
+    try:
+        tree = ET.parse(file_path)
+        root = tree.getroot()
+    except FileNotFoundError:
+        print(f"Error: File '{file_path}' not found.")
+        return
+
+    # 1. Metadata
+    org_name = root.findtext('.//org_name') or "Unknown Org"
+    
+    # Convert timestamps to readable dates
+    date_range = root.find('.//date_range')
+    if date_range is not None:
+        begin_ts = int(date_range.findtext('begin', 0))
+        end_ts = int(date_range.findtext('end', 0))
+        begin_date = datetime.fromtimestamp(begin_ts).strftime('%Y-%m-%d %H:%M')
+        end_date = datetime.fromtimestamp(end_ts).strftime('%Y-%m-%d %H:%M')
+    else:
+        begin_date = end_date = "Unknown"
+
+    print(f"--- Report for {org_name} ---")
+    print(f"Period: {begin_date} to {end_date}")
+    print("-" * 60)
+    print(f"{'Source IP':<20} | {'Count':<5} | {'SPF':<6} | {'DKIM':<6} | {'Disposition'}")
+    print("-" * 60)
+
+    # 2. Extract Records
+    records = root.findall('record')
+    
+    if not records:
+        print("No traffic records found in this report (likely a policy check only).")
+        return
+
+    for record in records:
+        row = record.find('row')
+        source_ip = row.findtext('source_ip')
+        count = row.findtext('count')
+        
+        # Policy Applied (none, quarantine, reject)
+        disposition = row.find('.//policy_evaluated/disposition').text
+        
+        # Auth Results
+        # Sometimes there are multiple SPF/DKIM results; we grab the first for summary
+        spf = record.find('.//auth_results/spf/result')
+        spf_res = spf.text if spf is not None else "none"
+        
+        dkim = record.find('.//auth_results/dkim/result')
+        dkim_res = dkim.text if dkim is not None else "none"
+
+        print(f"{source_ip:<20} | {count:<5} | {spf_res:<6} | {dkim_res:<6} | {disposition}")
+
+if __name__ == "__main__":
+    # Usage: python dmarc_parser.py report.xml
+    if len(sys.argv) < 2:
+        print("Usage: python dmarc_parser.py <path_to_xml_file>")
+    else:
+        parse_dmarc_xml(sys.argv[1])
