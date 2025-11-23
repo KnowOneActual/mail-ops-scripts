@@ -1,19 +1,47 @@
 import xml.etree.ElementTree as ET
 from datetime import datetime
 import sys
+import gzip
+import zipfile
+import os
 
 def parse_dmarc_xml(file_path):
+    """
+    Parses a DMARC aggregate report (XML, .gz, or .zip) and prints a summary.
+    """
+    tree = None
+    
+    # 1. Open the file based on extension
     try:
-        tree = ET.parse(file_path)
+        if file_path.endswith('.gz'):
+            with gzip.open(file_path, 'rb') as f:
+                tree = ET.parse(f)
+        elif file_path.endswith('.zip'):
+            with zipfile.ZipFile(file_path, 'r') as z:
+                # Find the first XML file in the zip
+                xml_files = [n for n in z.namelist() if n.lower().endswith('.xml')]
+                if not xml_files:
+                    print(f"Error: No XML file found inside '{file_path}'")
+                    return
+                # Parse the first XML found
+                with z.open(xml_files[0]) as f:
+                    tree = ET.parse(f)
+        else:
+            # Assume standard XML file
+            tree = ET.parse(file_path)
+            
         root = tree.getroot()
+        
     except FileNotFoundError:
         print(f"Error: File '{file_path}' not found.")
         return
+    except Exception as e:
+        print(f"Error processing '{file_path}': {e}")
+        return
 
-    # 1. Metadata
+    # 2. Extract Metadata
     org_name = root.findtext('.//org_name') or "Unknown Org"
     
-    # Convert timestamps to readable dates
     date_range = root.find('.//date_range')
     if date_range is not None:
         begin_ts = int(date_range.findtext('begin', 0))
@@ -25,15 +53,15 @@ def parse_dmarc_xml(file_path):
 
     print(f"--- Report for {org_name} ---")
     print(f"Period: {begin_date} to {end_date}")
-    print("-" * 60)
+    print("-" * 65)
     print(f"{'Source IP':<20} | {'Count':<5} | {'SPF':<6} | {'DKIM':<6} | {'Disposition'}")
-    print("-" * 60)
+    print("-" * 65)
 
-    # 2. Extract Records
+    # 3. Extract Records
     records = root.findall('record')
     
     if not records:
-        print("No traffic records found in this report (likely a policy check only).")
+        print("No traffic records found (likely a policy check only).")
         return
 
     for record in records:
@@ -41,11 +69,10 @@ def parse_dmarc_xml(file_path):
         source_ip = row.findtext('source_ip')
         count = row.findtext('count')
         
-        # Policy Applied (none, quarantine, reject)
+        # Policy Applied
         disposition = row.find('.//policy_evaluated/disposition').text
         
         # Auth Results
-        # Sometimes there are multiple SPF/DKIM results; we grab the first for summary
         spf = record.find('.//auth_results/spf/result')
         spf_res = spf.text if spf is not None else "none"
         
@@ -55,8 +82,7 @@ def parse_dmarc_xml(file_path):
         print(f"{source_ip:<20} | {count:<5} | {spf_res:<6} | {dkim_res:<6} | {disposition}")
 
 if __name__ == "__main__":
-    # Usage: python dmarc_parser.py report.xml
     if len(sys.argv) < 2:
-        print("Usage: python dmarc_parser.py <path_to_xml_file>")
+        print("Usage: python dmarc_parser.py <path_to_report>")
     else:
         parse_dmarc_xml(sys.argv[1])
