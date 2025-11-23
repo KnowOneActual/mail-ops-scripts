@@ -45,25 +45,3 @@ Source IP            | Count | SPF    | DKIM   | Disposition
 ## License
 
 MIT
-
-````
-
-### 2. A quick privacy tip (The `.gitignore`)
-
-Since you are dealing with security logs, you definitely don't want to accidentally commit your actual XML reports to GitHub. They contain IP addresses and internal data.
-
-Create a file named `.gitignore` in the same folder and add this:
-
-```text
-# Ignore DMARC reports
-*.xml
-*.gz
-*.zip
-
-# Ignore Python cache
-__pycache__/
-*.pyc
-
-# Ignore Mac system files
-.DS_Store
-````

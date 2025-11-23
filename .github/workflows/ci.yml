@@ -1,15 +1,13 @@
-name: CI
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Run a one-line script
-        run: echo "Replace this with your actual build/test commands!"
+steps:
+  - uses: actions/checkout@v3
+  - name: Set up Python
+    uses: actions/setup-python@v4
+    with:
+      python-version: '3.x'
+  - name: Install dependencies
+    run: |
+      python -m pip install --upgrade pip
+      # If you eventually add a requirements.txt, uncomment the next line
+      # pip install -r requirements.txt
+  - name: Syntax Check
+    run: python -m py_compile dmarc_parser.py
