@@ -24,7 +24,6 @@ def parse_dmarc_xml(file_path):
             with zipfile.ZipFile(file_path, 'r') as z:
                 xml_files = [n for n in z.namelist() if n.lower().endswith('.xml')]
                 if not xml_files:
-                    # Silent skip for zip files with no XML (avoids noise in bulk)
                     return []
                 with z.open(xml_files[0]) as f:
                     tree = ET.parse(f)
@@ -83,7 +82,7 @@ def parse_dmarc_xml(file_path):
 def print_to_console(all_data):
     """Prints the data to console grouped by Organization/File."""
     if not all_data:
-        print("\nNo traffic records found in these reports.")
+        print("\nNo records to display.")
         return
 
     # Group by file for readable output
@@ -121,6 +120,7 @@ def main():
     parser = argparse.ArgumentParser(description="Parse DMARC XML reports (XML, .gz, .zip).")
     parser.add_argument('path', help="Path to a single file or directory of reports")
     parser.add_argument('--csv', help="Output CSV file path (e.g., report.csv)", default=None)
+    parser.add_argument('--alerts-only', action='store_true', help="Only show records where SPF or DKIM failed")
     
     args = parser.parse_args()
     
@@ -157,6 +157,13 @@ def main():
             all_records.extend(new_records)
         else:
             print("Empty (No traffic data)")
+
+    # Filter for alerts if requested
+    if args.alerts_only:
+        print("\n[!] Filtering for alerts (SPF != pass OR DKIM != pass)...")
+        original_count = len(all_records)
+        all_records = [r for r in all_records if r['spf'] != 'pass' or r['dkim'] != 'pass']
+        print(f"Found {len(all_records)} alerts out of {original_count} total records.")
 
     # Output
     if args.csv:
