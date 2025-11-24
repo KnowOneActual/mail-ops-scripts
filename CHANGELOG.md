@@ -5,12 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.5] - 2025-11-23
+
+## [2.0.0] - 2025-11-24
+### Released
+- **Architecture Overhaul:** Refactored project from standalone scripts into a unified application.
+- **Master CLI:** Added `mailops.py` as the single entry point for all tools (`check`, `fetch`, `report`, `dkim`).
+- **Configuration:** Added `config.ini` support to persist settings (email, domain, paths).
+- **Refactor:** Updated `blacklist_monitor.py` and `dkim_gen.py` to expose callable functions for the master CLI.
+
+## [1.2.5] - 2025-11-24
 ### Documentation
 - **IMAP Guide:** Added a comprehensive "Provider Setup & Troubleshooting" section to `README.md` covering iCloud, Gmail, and Outlook.
 - **Usage Examples:** Updated general usage instructions for clarity across all tools.
 
-## [1.2.4] - 2025-11-23
+## [1.2.4] - 2025-11-24
 ### Fixed
 - **IMAP Protocol:** Switched from `RFC822` to `BODY[]` for more reliable fetching on iCloud.
 - **Resilience:** Added a fallback mechanism to identify the email body by size if the server response structure is non-standard.

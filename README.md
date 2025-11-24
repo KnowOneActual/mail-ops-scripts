@@ -1,170 +1,101 @@
 <div align="center">
   <img src="assets/img/mail-ops-scripts.webp" alt="mail ops scripts project logo" width="200">
+</div>
 
 
 # Mail Ops Scripts
 
-# **Under Development**
-</div>
+# **Under Devolment**
 
 [![CI](https://github.com/KnowOneActual/mail-ops-scripts/actions/workflows/ci.yml/badge.svg)](https://github.com/KnowOneActual/mail-ops-scripts/actions/workflows/ci.yml)
 
 
-A collection of lightweight, dependency-free Python utilities for email server administration, security analysis, and reporting.
 
-## Tools Included
+A unified operational toolkit for email server administration, security analysis, and reporting.
 
-### 1. DMARC XML Parser (`dmarc_parser.py`)
-A robust analyzer for DMARC aggregate reports. It handles single XML files, compressed archives (`.gz`, `.zip`), or entire directories of mixed reports.
+**Version:** 2.0.0
 
-**Key Features:**
-* **Bulk Processing:** Scans folders recursively for reports.
-* **Auto-Decompression:** Reads `.gz` and `.zip` files on the fly.
-* **CSV Export:** Converts complex XML data into flat CSVs for Excel/Sheets.
-* **Alert Mode:** Filters output to show *only* authentication failures (SPF/DKIM).
+## Features
 
-### 2. SPF Syntax Checker (`spf_check.py`)
-A security tool to validate DNS records without needing external libraries (uses Google's DNS-over-HTTPS API).
+* **🛡️ Health Checks:** Instant audit of SPF records and RBL Blacklist status.
+* **📊 DMARC Analysis:** Automated parsing of XML reports (with bulk support, CSV export, and alert filtering).
+* **📥 Auto-Fetch:** IMAP integration to download DMARC reports from iCloud/Gmail automatically.
+* **🔑 DKIM Generator:** Secure local generation of RSA keys and DNS records.
 
-**Checks Performed:**
-* **Syntax:** Validates `v=spf1` structure.
-* **RFC Limits:** Warns if DNS lookups exceed the limit of 10.
-* **Security:** Flags dangerous policies like `+all` or `?all`.
+## Setup
 
-### 3. DKIM Key Generator (`dkim_gen.py`)
-Generates secure 2048-bit RSA keys for email signing. Uses your system's `openssl` to avoid Python dependencies.
+1.  **Configure:**
+    Edit `config.ini` to set your email, server, and default domain.
 
-**Output:**
-* Saves `selector.private` (The key you upload to your mail server).
-* Prints the exact `TXT` record to add to your DNS.
-
-### 4. Blacklist Monitor (`blacklist_monitor.py`)
-Checks if your mail server's IP or Domain is listed on major Real-time Blackhole Lists (RBLs) like Spamhaus and Spamcop.
-
-**Key Features:**
-* **Smart Resolution:** Accepts either an IP (`1.2.3.4`) or a Domain (`google.com`).
-* **Privacy:** Uses DNS-over-HTTPS to query RBLs securely.
-
-### 5. IMAP Report Fetcher (`imap_fetcher.py`)
-Connects to your email server, finds DMARC report emails, and downloads the attachments into a `dmarc_reports/YYYY-MM-DD/` folder structure.
-
----
-
-## Prerequisites
-
-* Python 3.x
-* **No `pip install` required.** All scripts use standard libraries.
-* **OpenSSL** (Required only for `dkim_gen.py`).
-
----
+2.  **Run:**
+    Use the unified CLI for all tasks.
 
 ## Usage
 
-### DMARC Parser
+### 1. Health Check
+Audits your SPF record syntax and checks your IP against major blacklists.
 ```bash
-# Basic Summary
-python dmarc_parser.py ./downloads
-
-# Export to CSV
-python dmarc_parser.py ./downloads --csv report.csv
-
-# Show only failures
-python dmarc_parser.py ./downloads --alerts-only
+python mailops.py check
+# or override config:
+python mailops.py check otherdomain.com
 ````
 
-### SPF Checker
+### 2\. Fetch Reports
+
+Connects to your email (via `config.ini`), downloads new DMARC attachments, and saves them locally.
 
 ```bash
-python spf_check.py google.com
+python mailops.py fetch
 ```
 
-### DKIM Generator
+### 3\. Analyze Reports
+
+Parses all downloaded reports and summarizes traffic.
 
 ```bash
-# Syntax: python dkim_gen.py <selector> --domain <domain>
-python dkim_gen.py mail --domain example.com
+# View summary in console
+python mailops.py report
+
+# Show only failures (Attacks/Errors)
+python mailops.py report --alerts
+
+# Export to CSV
+python mailops.py report --csv weekly_summary.csv
 ```
 
-### Blacklist Monitor
+### 4\. Generate DKIM Keys
+
+Creates a 2048-bit private key and prints the DNS TXT record.
 
 ```bash
-# Check by IP
-python blacklist_monitor.py 1.2.3.4
-
-# Check by Domain (Auto-resolves to IP)
-python blacklist_monitor.py google.com
-```
-
-### IMAP Fetcher
-
-```bash
-# Default (iCloud):
-python imap_fetcher.py --email dmarc@beaubremer.com
-
-# For Gmail:
-python imap_fetcher.py --email you@gmail.com --server imap.gmail.com
+python mailops.py dkim mail --domain example.com
 ```
 
 -----
 
-### 🔧 IMAP Fetcher: Common Providers & Setup
+## Configuration (`config.ini`)
 
-Most modern email providers (iCloud, Gmail) require an **App-Specific Password** to use this script. You cannot use your regular login password if 2FA is enabled.
+```ini
+[general]
+download_dir = ./dmarc_reports
 
-#### 🍏 Apple iCloud (Default)
+[imap]
+email = user@icloud.com
+server = imap.mail.me.com
+# password = (Optional: Leave blank to be prompted securely)
 
-  * **Server:** `imap.mail.me.com` (Default in script)
-  * **Username:** Must be your primary Apple ID email (e.g., `user@icloud.com`), even if checking a custom domain alias.
-  * **Password:** Requires an App-Specific Password.
-      * Go to [appleid.apple.com](https://www.google.com/search?q=https://appleid.apple.com) \> Sign-In and Security \> App-Specific Passwords.
-
-
-
-```bash
-python imap_fetcher.py --email your_primary@icloud.com
+[monitor]
+domain = yourdomain.com
 ```
 
-#### 📮 Gmail / Google Workspace
+## Requirements
 
-  * **Server:** `imap.gmail.com`
-  * **Username:** Your full Gmail address.
-  * **Password:** Requires an App Password.
-      * Go to [myaccount.google.com](https://myaccount.google.com) \> Security \> 2-Step Verification \> App passwords.
-      * *Note: If you don't see "App passwords," enable 2-Step Verification first.*
+  * Python 3.x
+  * OpenSSL (for DKIM generation)
+  * No `pip install` required (Standard Libs only).
 
-
-
-```bash
-python imap_fetcher.py --email you@gmail.com --server imap.gmail.com
-```
-
-#### 🟦 Outlook / Office 365
-
-  * **Server:** `outlook.office365.com`
-  * **Note:** Many corporate Office 365 accounts **disable** Basic Auth (IMAP) by default. If this fails, you may need to ask your admin to enable "Authenticated SMTP" or use a different fetch method.
-
-
-
-```bash
-python imap_fetcher.py --email you@outlook.com --server outlook.office365.com
-```
-
-#### ❌ Troubleshooting Login Failures
-
-1.  **`[AUTHENTICATIONFAILED]`**: You are likely using your normal password instead of an App Password, or you have 2FA enabled but didn't generate a token.
-2.  **`Connection Refused`**: Check if you are behind a corporate firewall blocking port 993.
-3.  **`No DMARC reports found`**: The script searches for subjects containing "Report Domain" or "DMARC Aggregate". Ensure your reports aren't going to Spam.
-
------
-
-## Roadmap
-
-  * [x] **Phase 1: Reporting** (DMARC Parser complete)
-  * [x] **Phase 2: Validation** (SPF Checker complete)
-  * [x] **Phase 3: Operations** (DKIM Key Gen, RBL Monitor complete)
-  * [x] **Phase 4: Automation** (IMAP Fetcher complete)
-
+----
 
 ## License
 
-MIT [License](./LICENSE) | Copyright (c) 2025 Beau Bremer
+MIT License. See [LICENSE](LICENSE) 
