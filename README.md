@@ -17,12 +17,23 @@ A lightweight, dependency-free script to parse DMARC aggregate reports (XML form
 
 ## Usage
 
-### Parsing a DMARC Report
-Download your DMARC XML report (extract it if it is a `.zip` or `.gz` file), then run:
+### Parsing Reports (Console Output)
+Pass a file or directory path to see the summary in your terminal:
+
+```bash
+python dmarc_parser.py ./downloads
+```
 
 ```bash
 python dmarc_parser.py /path/to/report.xml
 ````
+### Exporting to CSV
+
+Use the --csv flag to save the output to a file for Excel/Sheets analysis:
+
+```bush
+python dmarc_parser.py ./downloads --csv my_report.csv
+```
 
 **Example Output:**
 

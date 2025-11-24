@@ -5,6 +5,7 @@ import gzip
 import zipfile
 import os
 import csv
+import sys
 
 def parse_dmarc_xml(file_path):
     """
@@ -23,7 +24,7 @@ def parse_dmarc_xml(file_path):
             with zipfile.ZipFile(file_path, 'r') as z:
                 xml_files = [n for n in z.namelist() if n.lower().endswith('.xml')]
                 if not xml_files:
-                    print(f"Skipping '{filename}': No XML file found.")
+                    # Silent skip for zip files with no XML (avoids noise in bulk)
                     return []
                 with z.open(xml_files[0]) as f:
                     tree = ET.parse(f)
@@ -33,7 +34,7 @@ def parse_dmarc_xml(file_path):
         root = tree.getroot()
         
     except Exception as e:
-        print(f"Error processing '{filename}': {e}")
+        print(f"[!] Error processing '{filename}': {e}")
         return []
 
     # 2. Extract Metadata
@@ -82,7 +83,7 @@ def parse_dmarc_xml(file_path):
 def print_to_console(all_data):
     """Prints the data to console grouped by Organization/File."""
     if not all_data:
-        print("No records found.")
+        print("\nNo traffic records found in these reports.")
         return
 
     # Group by file for readable output
@@ -102,7 +103,7 @@ def print_to_console(all_data):
 def save_to_csv(all_data, output_file):
     """Saves the data to a flat CSV file."""
     if not all_data:
-        print("No data to save.")
+        print("\nNo data found to save.")
         return
 
     headers = ['org_name', 'begin_date', 'end_date', 'source_ip', 'count', 'spf', 'dkim', 'disposition', 'file']
@@ -112,9 +113,9 @@ def save_to_csv(all_data, output_file):
             writer = csv.DictWriter(f, fieldnames=headers)
             writer.writeheader()
             writer.writerows(all_data)
-        print(f"\nSuccessfully exported {len(all_data)} records to '{output_file}'")
+        print(f"\n✅ Successfully exported {len(all_data)} records to '{output_file}'")
     except Exception as e:
-        print(f"Error writing CSV: {e}")
+        print(f"\n[!] Error writing CSV: {e}")
 
 def main():
     parser = argparse.ArgumentParser(description="Parse DMARC XML reports (XML, .gz, .zip).")
@@ -141,8 +142,21 @@ def main():
         return
 
     # Process files
+    if not files_to_process:
+        print("No DMARC files found.")
+        return
+
+    print(f"Found {len(files_to_process)} valid report files.")
+    
     for file_path in files_to_process:
-        all_records.extend(parse_dmarc_xml(file_path))
+        print(f"Reading {os.path.basename(file_path)}...", end=" ", flush=True)
+        new_records = parse_dmarc_xml(file_path)
+        
+        if new_records:
+            print(f"Ok ({len(new_records)} records)")
+            all_records.extend(new_records)
+        else:
+            print("Empty (No traffic data)")
 
     # Output
     if args.csv:
