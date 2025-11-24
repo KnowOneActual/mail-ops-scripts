@@ -5,7 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.0] - 2025-11-23
+## [1.2.5] - 2025-11-23
+### Documentation
+- **IMAP Guide:** Added a comprehensive "Provider Setup & Troubleshooting" section to `README.md` covering iCloud, Gmail, and Outlook.
+- **Usage Examples:** Updated general usage instructions for clarity across all tools.
+
+## [1.2.4] - 2025-11-23
+### Fixed
+- **IMAP Protocol:** Switched from `RFC822` to `BODY[]` for more reliable fetching on iCloud.
+- **Resilience:** Added a fallback mechanism to identify the email body by size if the server response structure is non-standard.
+- **Stability:** Added strict type checking and flexible response parsing to prevent crashes on malformed headers.
+
+## [1.2.3] - 2025-11-23
+### Fixed
+- **IMAP Parsing:** Replaced rigid index check with a loop to handle variable server response structures (fixes "Unexpected response format" on iCloud).
+
+## [1.2.0] - 2025-11-24
+### Added
+- **IMAP Fetcher:** Added `imap_fetcher.py` to automatically find, download, and organize DMARC report attachments from an email inbox.
+
+## [1.1.0] - 2025-11-24
 ### Added
 - **Smart Resolution:** `blacklist_monitor.py` now accepts domain names (e.g., `google.com`), automatically resolves them to an IP, and scans the result.
 
