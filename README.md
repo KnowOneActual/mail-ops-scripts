@@ -46,21 +46,21 @@ A security tool to validate DNS records without needing external libraries (uses
 **1. Basic Summary (Console)**
 View a human-readable summary of a single file or an entire folder:
 ```bash
-python dmarc_parser.py ./downloads
+python dmarc_parser.py ./your_folder
 ````
 
 **2. Export to CSV**
 Save the parsed data to a file for analysis in Excel:
 
 ```bash
-python dmarc_parser.py ./downloads --csv report_analysis.csv
+python dmarc_parser.py ./your_folder  --csv report_analysis.csv
 ```
 
 **3. Security Audit (Alert Mode)**
 Only display rows where SPF or DKIM failed:
 
 ```bash
-python dmarc_parser.py ./downloads --alerts-only
+python dmarc_parser.py ./your_folder --alerts-only
 ```
 
 ### Using the SPF Checker
