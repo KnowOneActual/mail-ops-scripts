@@ -9,7 +9,9 @@ import sys
 
 def parse_dmarc_xml(file_path):
     """
-    Parses a DMARC aggregate report and returns a list of record dictionaries.
+    Parses a DMARC aggregate report.
+    Returns a list of record dictionaries. 
+    If a report is a "Policy Check" (no traffic), it prints a summary immediately but returns empty list.
     """
     tree = None
     filename = os.path.basename(file_path)
@@ -51,6 +53,21 @@ def parse_dmarc_xml(file_path):
     # 3. Extract Records
     records = root.findall('record')
     
+    # --- NEW: Handle "Nil Reports" (Policy Checks) ---
+    if not records:
+        # Check if they at least saw our policy
+        policy = root.find('.//policy_published')
+        if policy is not None:
+            domain = policy.findtext('domain')
+            p_mode = policy.findtext('p')
+            pct = policy.findtext('pct')
+            print(f"\n[i] Policy Check Only: {org_name}")
+            print(f"    - They checked: {domain}")
+            print(f"    - They saw: p={p_mode} (Applied to {pct}%)")
+            print(f"    - Traffic: 0 emails sent.")
+            return [] # Still return empty list so it doesn't mess up CSV math
+    # -------------------------------------------------
+
     for record in records:
         row = record.find('row')
         source_ip = row.findtext('source_ip')
@@ -82,7 +99,8 @@ def parse_dmarc_xml(file_path):
 def print_to_console(all_data):
     """Prints the data to console grouped by Organization/File."""
     if not all_data:
-        print("\nNo records to display.")
+        # We don't print "No records" here anymore because the 
+        # parse function handles the "Policy Check" notification directly.
         return
 
     # Group by file for readable output
@@ -102,7 +120,7 @@ def print_to_console(all_data):
 def save_to_csv(all_data, output_file):
     """Saves the data to a flat CSV file."""
     if not all_data:
-        print("\nNo data found to save.")
+        print("\nNo traffic data found to save to CSV.")
         return
 
     headers = ['org_name', 'begin_date', 'end_date', 'source_ip', 'count', 'spf', 'dkim', 'disposition', 'file']
@@ -116,57 +134,142 @@ def save_to_csv(all_data, output_file):
     except Exception as e:
         print(f"\n[!] Error writing CSV: {e}")
 
+def save_to_html(all_data, output_file):
+    """Generates a visual HTML dashboard report."""
+    if not all_data:
+        print("\nNo traffic data to generate HTML report.")
+        return
+
+    # Calculate Summary Stats
+    total = len(all_data)
+    fails = sum(1 for r in all_data if r['spf'] != 'pass' or r['dkim'] != 'pass')
+    pass_count = total - fails
+    pass_percent = (pass_count / total) * 100 if total > 0 else 0
+
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DMARC Analysis Report</title>
+    <style>
+        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f4f4f9; color: #333; padding: 20px; }}
+        .container {{ max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }}
+        h1 {{ margin-top: 0; color: #2c3e50; }}
+        .summary {{ display: flex; gap: 20px; margin-bottom: 20px; padding: 15px; background: #eef2f7; border-radius: 6px; border-left: 5px solid #3498db; }}
+        .stat {{ font-size: 1.1em; }}
+        .stat strong {{ font-weight: 700; }}
+        table {{ width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9em; }}
+        th, td {{ padding: 12px 15px; border-bottom: 1px solid #ddd; text-align: left; }}
+        th {{ background-color: #34495e; color: white; text-transform: uppercase; font-size: 0.85em; letter-spacing: 0.05em; }}
+        tr:hover {{ background-color: #f1f1f1; }}
+        
+        /* Status Colors */
+        tr.fail {{ background-color: #fff0f0; }}
+        tr.pass {{ background-color: #ffffff; }}
+        
+        .badge {{ padding: 4px 8px; border-radius: 4px; color: white; font-weight: bold; font-size: 0.85em; text-transform: uppercase; display: inline-block; width: 60px; text-align: center; }}
+        .badge-pass {{ background: #27ae60; }}
+        .badge-fail {{ background: #e74c3c; }}
+        .badge-softfail, .badge-neutral {{ background: #f39c12; }}
+        .badge-none {{ background: #95a5a6; }}
+        
+        .footer {{ margin-top: 30px; font-size: 0.8em; color: #7f8c8d; text-align: center; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 DMARC Analysis Report</h1>
+        <div class="summary">
+            <div class="stat">Total Records: <strong>{total}</strong></div>
+            <div class="stat">Passing: <strong style="color: #27ae60;">{pass_count}</strong> ({pass_percent:.1f}%)</div>
+            <div class="stat">Failing: <strong style="color: #e74c3c;">{fails}</strong></div>
+            <div class="stat">Report Date: <strong>{datetime.now().strftime('%Y-%m-%d')}</strong></div>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Organization</th>
+                    <th>Source IP</th>
+                    <th>Date Range</th>
+                    <th>SPF Auth</th>
+                    <th>DKIM Auth</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+"""
+
+    for row in all_data:
+        spf = row['spf'].lower()
+        dkim = row['dkim'].lower()
+        
+        # Determine row styling
+        is_fail = spf != 'pass' or dkim != 'pass'
+        row_class = "fail" if is_fail else "pass"
+        
+        # Helper for badge classes
+        def get_badge(status):
+            if status == 'pass': return 'badge-pass'
+            if status in ['fail', 'permerror']: return 'badge-fail'
+            if status in ['softfail', 'neutral']: return 'badge-softfail'
+            return 'badge-none'
+            
+        html += f"""
+                <tr class="{row_class}">
+                    <td><strong>{row['org_name']}</strong><br><span style="color:#7f8c8d; font-size:0.85em">{row['file']}</span></td>
+                    <td>{row['source_ip']}</td>
+                    <td>{row['begin_date']}<br>to {row['end_date']}</td>
+                    <td><span class="badge {get_badge(spf)}">{spf}</span></td>
+                    <td><span class="badge {get_badge(dkim)}">{dkim}</span></td>
+                    <td>{row['disposition']}</td>
+                </tr>
+        """
+
+    html += """
+            </tbody>
+        </table>
+        <div class="footer">Generated by Mail Ops Scripts v2.1.0</div>
+    </div>
+</body>
+</html>
+"""
+
+    try:
+        with open(output_file, 'w') as f:
+            f.write(html)
+        print(f"\n✅ HTML Report saved to: {os.path.abspath(output_file)}")
+    except Exception as e:
+        print(f"\n[!] Error writing HTML: {e}")
+
 def main():
-    parser = argparse.ArgumentParser(description="Parse DMARC XML reports (XML, .gz, .zip).")
-    parser.add_argument('path', help="Path to a single file or directory of reports")
-    parser.add_argument('--csv', help="Output CSV file path (e.g., report.csv)", default=None)
-    parser.add_argument('--alerts-only', action='store_true', help="Only show records where SPF or DKIM failed")
+    parser = argparse.ArgumentParser(description="Parse DMARC XML reports.")
+    parser.add_argument('path', help="Path to reports")
+    parser.add_argument('--csv', help="Output CSV file")
+    parser.add_argument('--html', help="Output HTML file")
+    parser.add_argument('--alerts-only', action='store_true', help="Only show failures")
     
     args = parser.parse_args()
     
-    target_path = args.path
     all_records = []
-
-    # Gather files
-    files_to_process = []
-    if os.path.isfile(target_path):
-        files_to_process.append(target_path)
-    elif os.path.isdir(target_path):
-        print(f"Scanning directory: {target_path} ...")
-        for root, _, files in os.walk(target_path):
-            for file in files:
-                if file.lower().endswith(('.xml', '.gz', '.zip')):
-                    files_to_process.append(os.path.join(root, file))
-    else:
-        print(f"Error: '{target_path}' is not a valid file or directory.")
-        return
-
-    # Process files
-    if not files_to_process:
-        print("No DMARC files found.")
-        return
-
-    print(f"Found {len(files_to_process)} valid report files.")
     
-    for file_path in files_to_process:
-        print(f"Reading {os.path.basename(file_path)}...", end=" ", flush=True)
-        new_records = parse_dmarc_xml(file_path)
-        
-        if new_records:
-            print(f"Ok ({len(new_records)} records)")
-            all_records.extend(new_records)
-        else:
-            print("Empty (No traffic data)")
+    # Simple file detection for standalone run
+    if os.path.isfile(args.path):
+        all_records = parse_dmarc_xml(args.path)
+    elif os.path.isdir(args.path):
+        for root, _, files in os.walk(args.path):
+            for f in files:
+                if f.lower().endswith(('.xml', '.gz', '.zip')):
+                    recs = parse_dmarc_xml(os.path.join(root, f))
+                    if recs: all_records.extend(recs)
 
-    # Filter for alerts if requested
     if args.alerts_only:
-        print("\n[!] Filtering for alerts (SPF != pass OR DKIM != pass)...")
-        original_count = len(all_records)
         all_records = [r for r in all_records if r['spf'] != 'pass' or r['dkim'] != 'pass']
-        print(f"Found {len(all_records)} alerts out of {original_count} total records.")
 
-    # Output
-    if args.csv:
+    if args.html:
+        save_to_html(all_records, args.html)
+    elif args.csv:
         save_to_csv(all_records, args.csv)
     else:
         print_to_console(all_records)

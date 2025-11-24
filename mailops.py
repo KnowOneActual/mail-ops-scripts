@@ -25,7 +25,6 @@ def cmd_fetch(args, config):
         print("[!] Error: Email not configured in config.ini or --email argument.")
         return
 
-    # Check for stored password, otherwise ask safely
     pwd = config.get('imap', 'password', fallback=None)
     if not pwd:
         print(f"Enter App Password for {email_addr} (hidden):")
@@ -44,7 +43,6 @@ def cmd_report(args, config):
     all_records = []
     files = []
     
-    # Locate files
     if os.path.isfile(target):
         files.append(target)
     elif os.path.isdir(target):
@@ -57,19 +55,19 @@ def cmd_report(args, config):
         print("[-] No DMARC files found.")
         return
 
-    # Process files
     for f in files:
         records = dmarc_parser.parse_dmarc_xml(f)
         if records:
             all_records.extend(records)
             
-    # Apply Alerts Filter
     if args.alerts:
         print("[!] Filtering for failures only...")
         all_records = [r for r in all_records if r['spf'] != 'pass' or r['dkim'] != 'pass']
 
-    # Output
-    if args.csv:
+    # Output Routing
+    if args.html:
+        dmarc_parser.save_to_html(all_records, args.html)
+    elif args.csv:
         dmarc_parser.save_to_csv(all_records, args.csv)
     else:
         dmarc_parser.print_to_console(all_records)
@@ -108,6 +106,7 @@ def main():
     report_p = subparsers.add_parser('report', help='Analyze DMARC data')
     report_p.add_argument('path', nargs='?', help='Path to reports (default: ./dmarc_reports)')
     report_p.add_argument('--csv', help='Export to CSV')
+    report_p.add_argument('--html', help='Export to HTML Dashboard')
     report_p.add_argument('--alerts', action='store_true', help='Show failures only')
 
     # 3. Check (Health)

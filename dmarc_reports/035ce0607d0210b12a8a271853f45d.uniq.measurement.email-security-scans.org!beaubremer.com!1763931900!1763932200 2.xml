@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<feedback>
+  <report_metadata>
+    <org_name>035ce0607d0210b12a8a271853f45d.uniq.measurement.email-security-scans.org</org_name>
+    <email>dmarc@035ce0607d0210b12a8a271853f45d.uniq.measurement.email-security-scans.org</email>
+    <extra_contact_info>abuse@email-security-scans.org</extra_contact_info>
+    <report_id>beaubremer.com.1763931900.1763932200</report_id>
+    <date_range>
+      <begin>1763931900</begin>
+      <end>1763932200</end>
+    </date_range>
+  </report_metadata>
+  <policy_published>
+    <domain>beaubremer.com</domain>
+    <adkim>r</adkim>
+    <aspf>r</aspf>
+    <p>quarantine</p>
+    <sp>quarantine</sp>
+    <pct>100</pct>
+  </policy_published>
+</feedback>
