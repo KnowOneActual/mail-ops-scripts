@@ -33,6 +33,16 @@ A security tool to validate DNS records without needing external libraries (uses
 ### 3. DKIM Key Generator (`dkim_gen.py`)
 Generates secure 2048-bit RSA keys for email signing. Uses your system's `openssl` to avoid Python dependencies.
 
+**Output:**
+* Saves `selector.private` (The key you upload to your mail server).
+* Prints the exact `TXT` record to add to your DNS.
+
+### 4. Blacklist Monitor (`blacklist_monitor.py`)
+Checks if your mail server's IP or Domain is listed on major Real-time Blackhole Lists (RBLs) like Spamhaus and Spamcop.
+
+**Key Features:**
+* **Smart Resolution:** Accepts either an IP (`1.2.3.4`) or a Domain (`google.com`).
+* **Privacy:** Uses DNS-over-HTTPS to query RBLs securely.
 
 ---
 
@@ -40,50 +50,55 @@ Generates secure 2048-bit RSA keys for email signing. Uses your system's `openss
 
 * Python 3.x
 * **No `pip install` required.** All scripts use standard libraries.
+* **OpenSSL** (Required only for `dkim_gen.py`).
 
 ---
 
 ## Usage
 
-### Using the DMARC Parser
-
-**1. Basic Summary (Console)**
-View a human-readable summary of a single file or an entire folder:
+### DMARC Parser
 ```bash
-python dmarc_parser.py ./your_folder
+# Basic Summary
+python dmarc_parser.py ./downloads
+
+# Export to CSV
+python dmarc_parser.py ./downloads --csv report.csv
+
+# Show only failures
+python dmarc_parser.py ./downloads --alerts-only
 ````
 
-**2. Export to CSV**
-Save the parsed data to a file for analysis in Excel:
-
-```bash
-python dmarc_parser.py ./your_folder  --csv report_analysis.csv
-```
-
-**3. Security Audit (Alert Mode)**
-Only display rows where SPF or DKIM failed:
-
-```bash
-python dmarc_parser.py ./your_folder --alerts-only
-```
-
-### Using the SPF Checker
-
-**Check a domain's record:**
+### SPF Checker
 
 ```bash
 python spf_check.py google.com
 ```
 
-### Using the DKIM Generator
-**Usage:**
+### DKIM Generator
+
 ```bash
 # Syntax: python dkim_gen.py <selector> --domain <domain>
 python dkim_gen.py mail --domain example.com
 ```
 
+### Blacklist Monitor
+
+```bash
+# Check by IP
+python blacklist_monitor.py 1.2.3.4
+
+# Check by Domain (Auto-resolves to IP)
+python blacklist_monitor.py google.com
+```
+
 -----
+
+## Roadmap
+
+  * [x] **Phase 1: Reporting** (DMARC Parser complete)
+  * [x] **Phase 2: Validation** (SPF Checker complete)
+  * [x] **Phase 3: Operations** (DKIM Key Gen, RBL Monitor complete)
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) 
+MIT [License](./LICENSE) | Copyright (c) 2025 Beau Bremer
