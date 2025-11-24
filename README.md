@@ -1,12 +1,11 @@
 <div align="center">
   <img src="assets/img/mail-ops-scripts.webp" alt="mail ops scripts project logo" width="200">
-</div>
-
 
 
 # Mail Ops Scripts
 
-# **Under Devolment**
+# **Under Development**
+</div>
 
 [![CI](https://github.com/KnowOneActual/mail-ops-scripts/actions/workflows/ci.yml/badge.svg)](https://github.com/KnowOneActual/mail-ops-scripts/actions/workflows/ci.yml)
 
