@@ -2,6 +2,8 @@
 
 # **Under Devolment**
 
+[![CI](https://github.com/KnowOneActual/mail-ops-scripts/actions/workflows/ci.yml/badge.svg)](https://github.com/KnowOneActual/mail-ops-scripts/actions/workflows/ci.yml)
+
 A collection of lightweight, dependency-free Python utilities for email server administration, security analysis, and reporting.
 
 ## Tools Included
