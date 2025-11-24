@@ -85,9 +85,7 @@ python dkim_gen.py mail --domain example.com
 
 ```bash
 # Check by IP
-python blacklist_monitor.py 1.2.3.4
-
-# Check by Domain (Auto-resolves to IP)
+python blacklist_monitor.py 1.2.3.4 #Example IP. Will auto-resolve to domain if provided
 python blacklist_monitor.py google.com
 ```
 
