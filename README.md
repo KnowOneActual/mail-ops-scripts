@@ -1,58 +1,71 @@
 # Mail Ops Scripts
 
-A collection of Python utilities for email server administration, security analysis, and reporting.
+# **Under Devolment**
+
+A collection of lightweight, dependency-free Python utilities for email server administration, security analysis, and reporting.
 
 ## Tools Included
 
 ### 1. DMARC XML Parser (`dmarc_parser.py`)
-A lightweight, dependency-free script to parse DMARC aggregate reports (XML format). It converts the raw XML data into a readable CLI summary, helping you quickly identify:
-* Source IPs sending mail on your behalf.
-* SPF and DKIM authentication results.
-* Policy actions taken (None, Quarantine, Reject).
+A robust analyzer for DMARC aggregate reports. It handles single XML files, compressed archives (`.gz`, `.zip`), or entire directories of mixed reports.
+
+**Key Features:**
+* **Bulk Processing:** Scans folders recursively for reports.
+* **Auto-Decompression:** Reads `.gz` and `.zip` files on the fly.
+* **CSV Export:** Converts complex XML data into flat CSVs for Excel/Sheets.
+* **Alert Mode:** Filters output to show *only* authentication failures (SPF/DKIM).
+
+### 2. SPF Syntax Checker (`spf_check.py`)
+A security tool to validate DNS records without needing external libraries (uses Google's DNS-over-HTTPS API).
+
+**Checks Performed:**
+* **Syntax:** Validates `v=spf1` structure.
+* **RFC Limits:** Warns if DNS lookups exceed the limit of 10.
+* **Security:** Flags dangerous policies like `+all` or `?all`.
+
+---
 
 ## Prerequisites
 
 * Python 3.x
-* Standard libraries only (no `pip install` required for current scripts).
+* **No `pip install` required.** All scripts use standard libraries.
+
+---
 
 ## Usage
 
-### Parsing Reports (Console Output)
-Pass a file or directory path to see the summary in your terminal:
+### Using the DMARC Parser
 
+**1. Basic Summary (Console)**
+View a human-readable summary of a single file or an entire folder:
 ```bash
 python dmarc_parser.py ./downloads
-```
+````
+
+**2. Export to CSV**
+Save the parsed data to a file for analysis in Excel:
 
 ```bash
-python dmarc_parser.py /path/to/report.xml
-````
-### Exporting to CSV
-
-Use the --csv flag to save the output to a file for Excel/Sheets analysis:
-
-```bush
-python dmarc_parser.py ./downloads --csv my_report.csv
+python dmarc_parser.py ./downloads --csv report_analysis.csv
 ```
 
-**Example Output:**
+**3. Security Audit (Alert Mode)**
+Only display rows where SPF or DKIM failed:
 
-```text
---- Report for google.com ---
-Period: 2025-11-20 00:00 to 2025-11-21 23:59
-------------------------------------------------------------
-Source IP            | Count | SPF    | DKIM   | Disposition
-------------------------------------------------------------
-209.85.220.41        | 15    | pass   | pass   | none
-192.0.2.1            | 2     | fail   | none   | quarantine
+```bash
+python dmarc_parser.py ./downloads --alerts-only
 ```
 
-## Roadmap
+### Using the SPF Checker
 
-  * [ ] Automated `.gz` / `.zip` extraction.
-  * [ ] SPF record syntax checker.
-  * [ ] Bulk processing for directory of reports.
+**Check a domain's record:**
+
+```bash
+python spf_check.py google.com
+```
+
+-----
 
 ## License
 
-MIT
+MIT License. See [LICENSE](LICENSE) 
