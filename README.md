@@ -30,6 +30,10 @@ A security tool to validate DNS records without needing external libraries (uses
 * **RFC Limits:** Warns if DNS lookups exceed the limit of 10.
 * **Security:** Flags dangerous policies like `+all` or `?all`.
 
+### 3. DKIM Key Generator (`dkim_gen.py`)
+Generates secure 2048-bit RSA keys for email signing. Uses your system's `openssl` to avoid Python dependencies.
+
+
 ---
 
 ## Prerequisites
@@ -69,6 +73,13 @@ python dmarc_parser.py ./your_folder --alerts-only
 
 ```bash
 python spf_check.py google.com
+```
+
+### Using the DKIM Generator
+**Usage:**
+```bash
+# Syntax: python dkim_gen.py <selector> --domain <domain>
+python dkim_gen.py mail --domain example.com
 ```
 
 -----
