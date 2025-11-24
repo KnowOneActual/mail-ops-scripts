@@ -5,7 +5,7 @@
 
 # Mail Ops Scripts
 
-# **Under Devolment**
+# **Still under development, please excuse the mess**
 
 [![CI](https://github.com/KnowOneActual/mail-ops-scripts/actions/workflows/ci.yml/badge.svg)](https://github.com/KnowOneActual/mail-ops-scripts/actions/workflows/ci.yml)
 
