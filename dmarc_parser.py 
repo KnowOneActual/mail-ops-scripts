@@ -10,6 +10,7 @@ def parse_dmarc_xml(file_path):
     Parses a DMARC aggregate report (XML, .gz, or .zip) and prints a summary.
     """
     tree = None
+    filename = os.path.basename(file_path)
     
     # 1. Open the file based on extension
     try:
@@ -21,9 +22,8 @@ def parse_dmarc_xml(file_path):
                 # Find the first XML file in the zip
                 xml_files = [n for n in z.namelist() if n.lower().endswith('.xml')]
                 if not xml_files:
-                    print(f"Error: No XML file found inside '{file_path}'")
+                    print(f"Skipping '{filename}': No XML file found inside archive.")
                     return
-                # Parse the first XML found
                 with z.open(xml_files[0]) as f:
                     tree = ET.parse(f)
         else:
@@ -32,11 +32,11 @@ def parse_dmarc_xml(file_path):
             
         root = tree.getroot()
         
-    except FileNotFoundError:
-        print(f"Error: File '{file_path}' not found.")
+    except ET.ParseError:
+        print(f"Error: '{filename}' is not valid XML.")
         return
     except Exception as e:
-        print(f"Error processing '{file_path}': {e}")
+        print(f"Error processing '{filename}': {e}")
         return
 
     # 2. Extract Metadata
@@ -51,7 +51,7 @@ def parse_dmarc_xml(file_path):
     else:
         begin_date = end_date = "Unknown"
 
-    print(f"--- Report for {org_name} ---")
+    print(f"\n--- Report for {org_name} [{filename}] ---")
     print(f"Period: {begin_date} to {end_date}")
     print("-" * 65)
     print(f"{'Source IP':<20} | {'Count':<5} | {'SPF':<6} | {'DKIM':<6} | {'Disposition'}")
@@ -81,8 +81,32 @@ def parse_dmarc_xml(file_path):
 
         print(f"{source_ip:<20} | {count:<5} | {spf_res:<6} | {dkim_res:<6} | {disposition}")
 
-if __name__ == "__main__":
+def main():
     if len(sys.argv) < 2:
-        print("Usage: python dmarc_parser.py <path_to_report>")
+        print("Usage: python dmarc_parser.py <path_to_report_or_directory>")
+        return
+
+    target_path = sys.argv[1]
+
+    if os.path.isfile(target_path):
+        # Process single file
+        parse_dmarc_xml(target_path)
+    
+    elif os.path.isdir(target_path):
+        # Process directory
+        print(f"Scanning directory: {target_path} ...")
+        count = 0
+        for root, _, files in os.walk(target_path):
+            for file in files:
+                if file.lower().endswith(('.xml', '.gz', '.zip')):
+                    parse_dmarc_xml(os.path.join(root, file))
+                    count += 1
+        
+        if count == 0:
+            print("No DMARC report files (.xml, .gz, .zip) found in directory.")
+    
     else:
-        parse_dmarc_xml(sys.argv[1])
+        print(f"Error: '{target_path}' is not a valid file or directory.")
+
+if __name__ == "__main__":
+    main()
