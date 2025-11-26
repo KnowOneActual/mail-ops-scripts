@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [2.2.0] - 2025-11-26
+
+### Refactor
+- Restructure project into modular 'mailops' package
+- Move core worker scripts (dmarc_parser, spf_check, etc.) into `mailops/` directory.
+- Add `__init__.py` to initialize the new package structure.
+- Update `mailops.py` imports to reference the new location.
+- Clean up root directory to improve project maintainability.
+
 ### Added
 - **Smart Analysis:** Updated `dmarc_parser.py` to perform Reverse DNS (PTR) lookups, converting raw source IPs into human-readable hostnames.
 - **Color-Coded Reporting:** Console output now highlights results in **Green** (OK), **Yellow** (Blocked/Protected), and **Red** (Investigate) for instant visual assessment.

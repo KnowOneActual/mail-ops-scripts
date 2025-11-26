@@ -6,11 +6,7 @@ import getpass
 
 # Import your tool modules
 # Ensure these files are in the same directory or properly installed
-import dmarc_parser
-import spf_check
-import blacklist_monitor
-import dkim_gen
-import imap_fetcher
+from mailops import dmarc_parser, spf_check, blacklist_monitor, dkim_gen, imap_fetcher
 
 # --- Styling for Help Menu ---
 class Colors:
