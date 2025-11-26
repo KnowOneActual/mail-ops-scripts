@@ -1,8 +1,9 @@
+import argparse
+import os
+import shutil
 import subprocess
 import sys
-import os
-import argparse
-import shutil
+
 
 def check_openssl():
     if not shutil.which("openssl"):

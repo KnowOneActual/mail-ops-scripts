@@ -1,11 +1,13 @@
-import imaplib
-import email
-import os
 import argparse
+import email
 import getpass
+import imaplib
+import os
 import sys
 from email.header import decode_header
+
 from . import ui  # Integrate with your new UI system
+
 
 def clean_filename(filename):
     """Sanitizes filenames to prevent directory traversal issues."""

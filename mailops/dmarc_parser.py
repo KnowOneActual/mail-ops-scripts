@@ -1,11 +1,12 @@
 # mailops/dmarc_parser.py
-import xml.etree.ElementTree as ET
-from datetime import datetime
-import gzip
-import zipfile
-import os
 import csv
+import gzip
+import os
 import socket
+import xml.etree.ElementTree as ET
+import zipfile
+from datetime import datetime
+
 from . import ui  # Import the new UI module
 
 IP_CACHE = {}

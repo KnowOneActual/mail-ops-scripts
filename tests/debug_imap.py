@@ -1,8 +1,9 @@
-import imaplib
 import email
 import getpass
-from email.header import decode_header
+import imaplib
 import sys
+from email.header import decode_header
+
 
 def debug_reports(username, password, server, folder="INBOX"):
     print(f"[*] Connecting to {server}...")

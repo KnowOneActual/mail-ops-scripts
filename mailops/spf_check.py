@@ -1,8 +1,10 @@
 # mailops/spf_check.py
+import argparse
 import json
 import urllib.request
-import argparse
+
 from . import ui  # Import the new UI module
+
 
 def fetch_spf_record(domain):
     """

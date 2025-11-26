@@ -1,11 +1,12 @@
 import argparse
 import configparser
-import sys
-import os
 import getpass
+import os
+import sys
 
 # Import your tool modules
-from mailops import dmarc_parser, spf_check, blacklist_monitor, dkim_gen, imap_fetcher, ui
+from mailops import blacklist_monitor, dkim_gen, dmarc_parser, imap_fetcher, spf_check, ui
+
 
 def load_config():
     config = configparser.ConfigParser()

@@ -1,8 +1,9 @@
 # mailops/blacklist_monitor.py
-import json
-import urllib.request
 import argparse
 import ipaddress
+import json
+import urllib.request
+
 from . import ui  # Import the new UI module
 
 # Common RBLs
