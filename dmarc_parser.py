@@ -5,19 +5,57 @@ import gzip
 import zipfile
 import os
 import csv
+import socket
 import sys
 
+# --- Configuration & Helpers ---
+
+class Colors:
+    HEADER = '\033[95m'
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    RESET = '\033[0m'
+    BOLD = '\033[1m'
+
+IP_CACHE = {}
+
+def resolve_ip(ip_address):
+    """Resolves IP to Hostname with caching."""
+    if ip_address in IP_CACHE:
+        return IP_CACHE[ip_address]
+    
+    try:
+        socket.setdefaulttimeout(2)
+        hostname, _, _ = socket.gethostbyaddr(ip_address)
+        IP_CACHE[ip_address] = hostname
+        return hostname
+    except Exception:
+        result = "Unknown"
+        IP_CACHE[ip_address] = result
+        return result
+
+def analyze_record(spf, dkim, disposition):
+    """
+    Determines the status and color based on DMARC results.
+    Returns: (Action_String, Color_Code)
+    """
+    if spf == 'pass' or dkim == 'pass':
+        return "OK", Colors.GREEN
+    
+    if disposition in ['quarantine', 'reject']:
+        return "BLOCKED (Spoofing)", Colors.YELLOW
+    
+    return "INVESTIGATE", Colors.RED
+
+# --- Core Logic ---
+
 def parse_dmarc_xml(file_path):
-    """
-    Parses a DMARC aggregate report.
-    Returns a list of record dictionaries. 
-    If a report is a "Policy Check" (no traffic), it prints a summary immediately but returns empty list.
-    """
     tree = None
     filename = os.path.basename(file_path)
     records_data = []
     
-    # 1. Open the file based on extension
     try:
         if file_path.endswith('.gz'):
             with gzip.open(file_path, 'rb') as f:
@@ -25,54 +63,35 @@ def parse_dmarc_xml(file_path):
         elif file_path.endswith('.zip'):
             with zipfile.ZipFile(file_path, 'r') as z:
                 xml_files = [n for n in z.namelist() if n.lower().endswith('.xml')]
-                if not xml_files:
-                    return []
+                if not xml_files: return []
                 with z.open(xml_files[0]) as f:
                     tree = ET.parse(f)
         else:
             tree = ET.parse(file_path)
-            
         root = tree.getroot()
-        
     except Exception as e:
-        print(f"[!] Error processing '{filename}': {e}")
+        print(f"{Colors.RED}[!] Error processing '{filename}': {e}{Colors.RESET}")
         return []
 
-    # 2. Extract Metadata
     org_name = root.findtext('.//org_name') or "Unknown Org"
     
     date_range = root.find('.//date_range')
     if date_range is not None:
         begin_ts = int(date_range.findtext('begin', 0))
         end_ts = int(date_range.findtext('end', 0))
-        begin_date = datetime.fromtimestamp(begin_ts).strftime('%Y-%m-%d %H:%M')
-        end_date = datetime.fromtimestamp(end_ts).strftime('%Y-%m-%d %H:%M')
+        begin_date = datetime.fromtimestamp(begin_ts).strftime('%Y-%m-%d')
+        end_date = datetime.fromtimestamp(end_ts).strftime('%Y-%m-%d')
     else:
         begin_date = end_date = "Unknown"
 
-    # 3. Extract Records
     records = root.findall('record')
-    
-    # --- NEW: Handle "Nil Reports" (Policy Checks) ---
     if not records:
-        # Check if they at least saw our policy
-        policy = root.find('.//policy_published')
-        if policy is not None:
-            domain = policy.findtext('domain')
-            p_mode = policy.findtext('p')
-            pct = policy.findtext('pct')
-            print(f"\n[i] Policy Check Only: {org_name}")
-            print(f"    - They checked: {domain}")
-            print(f"    - They saw: p={p_mode} (Applied to {pct}%)")
-            print(f"    - Traffic: 0 emails sent.")
-            return [] # Still return empty list so it doesn't mess up CSV math
-    # -------------------------------------------------
+        return [] 
 
     for record in records:
         row = record.find('row')
         source_ip = row.findtext('source_ip')
         count = row.findtext('count')
-        
         disposition = row.find('.//policy_evaluated/disposition').text
         
         spf = record.find('.//auth_results/spf/result')
@@ -81,195 +100,110 @@ def parse_dmarc_xml(file_path):
         dkim = record.find('.//auth_results/dkim/result')
         dkim_res = dkim.text if dkim is not None else "none"
 
-        # Create a flat dictionary for this row
+        hostname = resolve_ip(source_ip)
+        status_msg, status_color = analyze_record(spf_res, dkim_res, disposition)
+
         records_data.append({
             'org_name': org_name,
-            'begin_date': begin_date,
-            'end_date': end_date,
+            'date': begin_date,
             'source_ip': source_ip,
+            'hostname': hostname,
             'count': count,
             'spf': spf_res,
             'dkim': dkim_res,
             'disposition': disposition,
+            'status_msg': status_msg,
+            'status_color': status_color,
             'file': filename
         })
         
     return records_data
 
 def print_to_console(all_data):
-    """Prints the data to console grouped by Organization/File."""
     if not all_data:
-        # We don't print "No records" here anymore because the 
-        # parse function handles the "Policy Check" notification directly.
+        print("No records found.")
         return
 
-    # Group by file for readable output
     current_file = None
-    
+    header_fmt = "{:<20} | {:<30} | {:<5} | {:<6} | {:<6} | {:<15}"
+    row_fmt    = "{:<20} | {:<30} | {:<5} | {:<6} | {:<6} | {:<15}"
+
     for row in all_data:
         if row['file'] != current_file:
             current_file = row['file']
-            print(f"\n--- Report for {row['org_name']} [{current_file}] ---")
-            print(f"Period: {row['begin_date']} to {row['end_date']}")
-            print("-" * 80)
-            print(f"{'Source IP':<20} | {'Count':<5} | {'SPF':<6} | {'DKIM':<6} | {'Disposition'}")
-            print("-" * 80)
+            print(f"\n{Colors.BOLD}--- Report: {row['org_name']} ({row['date']}) ---{Colors.RESET}")
+            print("-" * 95)
+            print(Colors.HEADER + header_fmt.format("Source IP", "Hostname", "Cnt", "SPF", "DKIM", "Analysis") + Colors.RESET)
+            print("-" * 95)
         
-        print(f"{row['source_ip']:<20} | {row['count']:<5} | {row['spf']:<6} | {row['dkim']:<6} | {row['disposition']}")
+        host_display = (row['hostname'][:27] + '..') if len(row['hostname']) > 29 else row['hostname']
+        
+        line = row_fmt.format(
+            row['source_ip'], host_display, row['count'], row['spf'], row['dkim'], row['status_msg']
+        )
+        print(row['status_color'] + line + Colors.RESET)
 
 def save_to_csv(all_data, output_file):
-    """Saves the data to a flat CSV file."""
-    if not all_data:
-        print("\nNo traffic data found to save to CSV.")
-        return
-
-    headers = ['org_name', 'begin_date', 'end_date', 'source_ip', 'count', 'spf', 'dkim', 'disposition', 'file']
+    if not all_data: return
+    
+    clean_data = [{k: v for k, v in r.items() if k != 'status_color'} for r in all_data]
+    headers = ['org_name', 'date', 'source_ip', 'hostname', 'count', 'spf', 'dkim', 'disposition', 'status_msg', 'file']
     
     try:
         with open(output_file, 'w', newline='') as f:
             writer = csv.DictWriter(f, fieldnames=headers)
             writer.writeheader()
-            writer.writerows(all_data)
-        print(f"\n✅ Successfully exported {len(all_data)} records to '{output_file}'")
+            writer.writerows(clean_data)
+        print(f"\n{Colors.GREEN}✅ Exported to {output_file}{Colors.RESET}")
     except Exception as e:
-        print(f"\n[!] Error writing CSV: {e}")
-
-def save_to_html(all_data, output_file):
-    """Generates a visual HTML dashboard report."""
-    if not all_data:
-        print("\nNo traffic data to generate HTML report.")
-        return
-
-    # Calculate Summary Stats
-    total = len(all_data)
-    fails = sum(1 for r in all_data if r['spf'] != 'pass' or r['dkim'] != 'pass')
-    pass_count = total - fails
-    pass_percent = (pass_count / total) * 100 if total > 0 else 0
-
-    html = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DMARC Analysis Report</title>
-    <style>
-        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f4f4f9; color: #333; padding: 20px; }}
-        .container {{ max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }}
-        h1 {{ margin-top: 0; color: #2c3e50; }}
-        .summary {{ display: flex; gap: 20px; margin-bottom: 20px; padding: 15px; background: #eef2f7; border-radius: 6px; border-left: 5px solid #3498db; }}
-        .stat {{ font-size: 1.1em; }}
-        .stat strong {{ font-weight: 700; }}
-        table {{ width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9em; }}
-        th, td {{ padding: 12px 15px; border-bottom: 1px solid #ddd; text-align: left; }}
-        th {{ background-color: #34495e; color: white; text-transform: uppercase; font-size: 0.85em; letter-spacing: 0.05em; }}
-        tr:hover {{ background-color: #f1f1f1; }}
-        
-        /* Status Colors */
-        tr.fail {{ background-color: #fff0f0; }}
-        tr.pass {{ background-color: #ffffff; }}
-        
-        .badge {{ padding: 4px 8px; border-radius: 4px; color: white; font-weight: bold; font-size: 0.85em; text-transform: uppercase; display: inline-block; width: 60px; text-align: center; }}
-        .badge-pass {{ background: #27ae60; }}
-        .badge-fail {{ background: #e74c3c; }}
-        .badge-softfail, .badge-neutral {{ background: #f39c12; }}
-        .badge-none {{ background: #95a5a6; }}
-        
-        .footer {{ margin-top: 30px; font-size: 0.8em; color: #7f8c8d; text-align: center; }}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>📊 DMARC Analysis Report</h1>
-        <div class="summary">
-            <div class="stat">Total Records: <strong>{total}</strong></div>
-            <div class="stat">Passing: <strong style="color: #27ae60;">{pass_count}</strong> ({pass_percent:.1f}%)</div>
-            <div class="stat">Failing: <strong style="color: #e74c3c;">{fails}</strong></div>
-            <div class="stat">Report Date: <strong>{datetime.now().strftime('%Y-%m-%d')}</strong></div>
-        </div>
-        
-        <table>
-            <thead>
-                <tr>
-                    <th>Organization</th>
-                    <th>Source IP</th>
-                    <th>Date Range</th>
-                    <th>SPF Auth</th>
-                    <th>DKIM Auth</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-"""
-
-    for row in all_data:
-        spf = row['spf'].lower()
-        dkim = row['dkim'].lower()
-        
-        # Determine row styling
-        is_fail = spf != 'pass' or dkim != 'pass'
-        row_class = "fail" if is_fail else "pass"
-        
-        # Helper for badge classes
-        def get_badge(status):
-            if status == 'pass': return 'badge-pass'
-            if status in ['fail', 'permerror']: return 'badge-fail'
-            if status in ['softfail', 'neutral']: return 'badge-softfail'
-            return 'badge-none'
-            
-        html += f"""
-                <tr class="{row_class}">
-                    <td><strong>{row['org_name']}</strong><br><span style="color:#7f8c8d; font-size:0.85em">{row['file']}</span></td>
-                    <td>{row['source_ip']}</td>
-                    <td>{row['begin_date']}<br>to {row['end_date']}</td>
-                    <td><span class="badge {get_badge(spf)}">{spf}</span></td>
-                    <td><span class="badge {get_badge(dkim)}">{dkim}</span></td>
-                    <td>{row['disposition']}</td>
-                </tr>
-        """
-
-    html += """
-            </tbody>
-        </table>
-        <div class="footer">Generated by Mail Ops Scripts v2.1.0</div>
-    </div>
-</body>
-</html>
-"""
-
-    try:
-        with open(output_file, 'w') as f:
-            f.write(html)
-        print(f"\n✅ HTML Report saved to: {os.path.abspath(output_file)}")
-    except Exception as e:
-        print(f"\n[!] Error writing HTML: {e}")
+        print(f"\n{Colors.RED}[!] CSV Error: {e}{Colors.RESET}")
 
 def main():
-    parser = argparse.ArgumentParser(description="Parse DMARC XML reports.")
-    parser.add_argument('path', help="Path to reports")
-    parser.add_argument('--csv', help="Output CSV file")
-    parser.add_argument('--html', help="Output HTML file")
-    parser.add_argument('--alerts-only', action='store_true', help="Only show failures")
+    # We define the legend text here with the color codes embedded
+    epilog_text = f"""
+{Colors.BOLD}LEGEND:{Colors.RESET}
+  {Colors.GREEN}OK{Colors.RESET}           : Email is authenticated and safe.
+  {Colors.YELLOW}BLOCKED{Colors.RESET}      : Spoofing attempt caught by your policy (Quarantine/Reject).
+  {Colors.RED}INVESTIGATE{Colors.RESET}  : Authentication failed, but email may have been delivered.
+"""
+
+    parser = argparse.ArgumentParser(
+        description="Parse DMARC XML reports and analyze sender reputation.",
+        formatter_class=argparse.RawTextHelpFormatter, # This keeps the newlines in the epilog
+        epilog=epilog_text
+    )
+    
+    parser.add_argument('path', help="Path to reports (file or folder)")
+    parser.add_argument('--csv', help="Output CSV file path")
+    parser.add_argument('--alerts-only', action='store_true', help="Only show failures/investigations")
     
     args = parser.parse_args()
     
     all_records = []
     
-    # Simple file detection for standalone run
+    files_to_process = []
     if os.path.isfile(args.path):
-        all_records = parse_dmarc_xml(args.path)
+        files_to_process.append(args.path)
     elif os.path.isdir(args.path):
         for root, _, files in os.walk(args.path):
             for f in files:
                 if f.lower().endswith(('.xml', '.gz', '.zip')):
-                    recs = parse_dmarc_xml(os.path.join(root, f))
-                    if recs: all_records.extend(recs)
+                    files_to_process.append(os.path.join(root, f))
+    
+    if not files_to_process:
+        print(f"{Colors.RED}[!] No DMARC files found in '{args.path}'{Colors.RESET}")
+        return
+
+    print(f"{Colors.BLUE}[*] Analyzing {len(files_to_process)} files...{Colors.RESET}")
+
+    for f in files_to_process:
+        recs = parse_dmarc_xml(f)
+        if recs: all_records.extend(recs)
 
     if args.alerts_only:
-        all_records = [r for r in all_records if r['spf'] != 'pass' or r['dkim'] != 'pass']
+        all_records = [r for r in all_records if r['status_msg'] != "OK"]
 
-    if args.html:
-        save_to_html(all_records, args.html)
-    elif args.csv:
+    if args.csv:
         save_to_csv(all_records, args.csv)
     else:
         print_to_console(all_records)

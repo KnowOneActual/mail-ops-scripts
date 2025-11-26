@@ -8,17 +8,19 @@
 # **Still under development, please excuse the mess**
 
 [![CI](https://github.com/KnowOneActual/mail-ops-scripts/actions/workflows/ci.yml/badge.svg)](https://github.com/KnowOneActual/mail-ops-scripts/actions/workflows/ci.yml)
-
+</div>
 
 
 A unified operational toolkit for email server administration, security analysis, and reporting.
 
-**Version:** 2.0.1
+**Version:** 2.2.0
 
 ## Features
 
 * **🛡️ Health Checks:** Instant audit of SPF records and RBL Blacklist status.
-* **📊 DMARC Analysis:** Automated parsing of XML reports (with bulk support, CSV export, and alert filtering).
+* **🧠 Smart Analysis:** Automatic Reverse DNS (PTR) lookups to identify who is actually sending email (e.g., converts IP `1.2.3.4` to `mail.google.com`).
+* **📊 DMARC Analysis:** Automated parsing of XML reports with color-coded console output (Green/Yellow/Red) for rapid decision making.
+* **🌐 HTML Dashboards:** Generate visual, shareable HTML reports from your DMARC data.
 * **📥 Auto-Fetch:** IMAP integration to download DMARC reports from iCloud/Gmail automatically.
 * **🔑 DKIM Generator:** Secure local generation of RSA keys and DNS records.
 
@@ -63,7 +65,7 @@ Most providers require an **App-Specific Password** if 2FA is enabled. You canno
 
   * **Server:** `imap.gmail.com`
   * **Email:** Your full Gmail address.
-  * **Password:** Generate an App Password at [myaccount.google.com](https://myaccount.google.com) \> Security \> 2-Step Verification.
+  * **Password:** Generate an App Password at [myaccount.google.com](https://myaccount.google.com) > Security > 2-Step Verification.
 
 ### 🟦 Outlook / Office 365
 
@@ -104,17 +106,20 @@ python mailops.py fetch
 Parses all downloaded reports and summarizes traffic.
 
 ```bash
-# View summary in console
+# View color-coded summary in console
 python mailops.py report
 
 # Show only failures (Attacks/Errors)
 python mailops.py report --alerts
 
+# Export to HTML Dashboard
+python mailops.py report --html weekly_report.html
+
 # Export to CSV
 python mailops.py report --csv weekly_summary.csv
 ```
 
-### 4. Generate DKIM Keys
+### 4\. Generate DKIM Keys
 
 Creates a 2048-bit private key and prints the DNS TXT record.
 
@@ -127,9 +132,9 @@ python mailops.py dkim mail --domain example.com
   * Python 3.x
   * OpenSSL (for DKIM generation)
   * No `pip install` required (Standard Libs only).
-  
-  ----
+
+-----
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) 
+MIT License. See [LICENSE](LICENSE)

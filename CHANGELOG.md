@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2025-11-26
+### Added
+- **Smart Analysis:** Updated `dmarc_parser.py` to perform Reverse DNS (PTR) lookups, converting raw source IPs into human-readable hostnames.
+- **Color-Coded Reporting:** Console output now highlights results in **Green** (OK), **Yellow** (Blocked/Protected), and **Red** (Investigate) for instant visual assessment.
+- **Actionable Status:** Added logic to interpret DMARC results into clear action items (`OK`, `BLOCKED`, `INVESTIGATE`) rather than just raw pass/fail data.
+- **Enhanced CLI Help:** Updated `mailops.py` and `dmarc_parser.py` help menus (`--help`) to include color-coded legends and "Common Usage Examples" for better usability.
+
+### Changed
+- **CSV Export:** Updated CSV output to include new `hostname` and `status_msg` columns.
+
 
 ## [2.1.0] - 2025-11-24
 ### Added
