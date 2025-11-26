@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1] - 2025-11-26
+
+### Security
+- **Environment Variables:** Added support for `MAILOPS_PASSWORD`. Users can now authenticate safely in CI/CD environments without storing secrets in `config.ini`.
+
+### Refactor
+- **UI Module:** Created `mailops/ui.py` to centralize color codes and logging functions, improving consistency across all tools.
+- **IMAP Logic:** Completely rewrote `imap_fetcher.py` to remove the fallback "guessing" logic. It now strictly identifies attachments via MIME types and Content-Disposition headers for safer downloads.
+
+### Style & CI
+- **Code Standards:** Adhered to `Black` and `Isort` standards across the entire codebase.
+- **Project Structure:** Added `pyproject.toml` to define project metadata and tool configurations.
+- **CI Pipeline:** Updated GitHub Actions (`ci.yml`) to enforce strict linting and formatting on every push.
+
+### Documentation
+- **Repo Cleanup:** Updated `CONTRIBUTING.md` to reflect Python standards (removing legacy Bash instructions).
+- **Badges:** Added status badges to `README.md` for CI status, code style, and license.
+
 ## [2.2.0] - 2025-11-26
 
 ### Refactor
