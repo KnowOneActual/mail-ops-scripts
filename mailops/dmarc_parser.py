@@ -1,23 +1,12 @@
+# mailops/dmarc_parser.py
 import xml.etree.ElementTree as ET
 from datetime import datetime
-import argparse
 import gzip
 import zipfile
 import os
 import csv
 import socket
-import sys
-
-# --- Configuration & Helpers ---
-
-class Colors:
-    HEADER = '\033[95m'
-    BLUE = '\033[94m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    RED = '\033[91m'
-    RESET = '\033[0m'
-    BOLD = '\033[1m'
+from . import ui  # Import the new UI module
 
 IP_CACHE = {}
 
@@ -42,12 +31,12 @@ def analyze_record(spf, dkim, disposition):
     Returns: (Action_String, Color_Code)
     """
     if spf == 'pass' or dkim == 'pass':
-        return "OK", Colors.GREEN
+        return "OK", ui.Colors.GREEN
     
     if disposition in ['quarantine', 'reject']:
-        return "BLOCKED (Spoofing)", Colors.YELLOW
+        return "BLOCKED (Spoofing)", ui.Colors.YELLOW
     
-    return "INVESTIGATE", Colors.RED
+    return "INVESTIGATE", ui.Colors.RED
 
 # --- Core Logic ---
 
@@ -70,7 +59,7 @@ def parse_dmarc_xml(file_path):
             tree = ET.parse(file_path)
         root = tree.getroot()
     except Exception as e:
-        print(f"{Colors.RED}[!] Error processing '{filename}': {e}{Colors.RESET}")
+        ui.print_error(f"Processing '{filename}': {e}")
         return []
 
     org_name = root.findtext('.//org_name') or "Unknown Org"
@@ -121,7 +110,7 @@ def parse_dmarc_xml(file_path):
 
 def print_to_console(all_data):
     if not all_data:
-        print("No records found.")
+        ui.print_warning("No records found.")
         return
 
     current_file = None
@@ -131,9 +120,9 @@ def print_to_console(all_data):
     for row in all_data:
         if row['file'] != current_file:
             current_file = row['file']
-            print(f"\n{Colors.BOLD}--- Report: {row['org_name']} ({row['date']}) ---{Colors.RESET}")
+            ui.print_sub_header(f"Report: {row['org_name']} ({row['date']})")
             print("-" * 95)
-            print(Colors.HEADER + header_fmt.format("Source IP", "Hostname", "Cnt", "SPF", "DKIM", "Analysis") + Colors.RESET)
+            print(ui.Colors.HEADER + header_fmt.format("Source IP", "Hostname", "Cnt", "SPF", "DKIM", "Analysis") + ui.Colors.RESET)
             print("-" * 95)
         
         host_display = (row['hostname'][:27] + '..') if len(row['hostname']) > 29 else row['hostname']
@@ -141,7 +130,7 @@ def print_to_console(all_data):
         line = row_fmt.format(
             row['source_ip'], host_display, row['count'], row['spf'], row['dkim'], row['status_msg']
         )
-        print(row['status_color'] + line + Colors.RESET)
+        print(row['status_color'] + line + ui.Colors.RESET)
 
 def save_to_csv(all_data, output_file):
     if not all_data: return
@@ -154,59 +143,6 @@ def save_to_csv(all_data, output_file):
             writer = csv.DictWriter(f, fieldnames=headers)
             writer.writeheader()
             writer.writerows(clean_data)
-        print(f"\n{Colors.GREEN}✅ Exported to {output_file}{Colors.RESET}")
+        ui.print_success(f"Exported to {output_file}")
     except Exception as e:
-        print(f"\n{Colors.RED}[!] CSV Error: {e}{Colors.RESET}")
-
-def main():
-    # We define the legend text here with the color codes embedded
-    epilog_text = f"""
-{Colors.BOLD}LEGEND:{Colors.RESET}
-  {Colors.GREEN}OK{Colors.RESET}           : Email is authenticated and safe.
-  {Colors.YELLOW}BLOCKED{Colors.RESET}      : Spoofing attempt caught by your policy (Quarantine/Reject).
-  {Colors.RED}INVESTIGATE{Colors.RESET}  : Authentication failed, but email may have been delivered.
-"""
-
-    parser = argparse.ArgumentParser(
-        description="Parse DMARC XML reports and analyze sender reputation.",
-        formatter_class=argparse.RawTextHelpFormatter, # This keeps the newlines in the epilog
-        epilog=epilog_text
-    )
-    
-    parser.add_argument('path', help="Path to reports (file or folder)")
-    parser.add_argument('--csv', help="Output CSV file path")
-    parser.add_argument('--alerts-only', action='store_true', help="Only show failures/investigations")
-    
-    args = parser.parse_args()
-    
-    all_records = []
-    
-    files_to_process = []
-    if os.path.isfile(args.path):
-        files_to_process.append(args.path)
-    elif os.path.isdir(args.path):
-        for root, _, files in os.walk(args.path):
-            for f in files:
-                if f.lower().endswith(('.xml', '.gz', '.zip')):
-                    files_to_process.append(os.path.join(root, f))
-    
-    if not files_to_process:
-        print(f"{Colors.RED}[!] No DMARC files found in '{args.path}'{Colors.RESET}")
-        return
-
-    print(f"{Colors.BLUE}[*] Analyzing {len(files_to_process)} files...{Colors.RESET}")
-
-    for f in files_to_process:
-        recs = parse_dmarc_xml(f)
-        if recs: all_records.extend(recs)
-
-    if args.alerts_only:
-        all_records = [r for r in all_records if r['status_msg'] != "OK"]
-
-    if args.csv:
-        save_to_csv(all_records, args.csv)
-    else:
-        print_to_console(all_records)
-
-if __name__ == "__main__":
-    main()
+        ui.print_error(f"CSV Error: {e}")

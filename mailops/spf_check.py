@@ -1,18 +1,15 @@
-import sys
+# mailops/spf_check.py
 import json
 import urllib.request
-import urllib.parse
 import argparse
-import re
+from . import ui  # Import the new UI module
 
 def fetch_spf_record(domain):
     """
     Fetches the SPF record for a domain using Google's DNS-over-HTTPS API.
-    This avoids the need for 'pip install dnspython'.
     """
-    print(f"[*] Fetching SPF record for '{domain}'...")
+    ui.print_info(f"Fetching SPF record for '{domain}'...")
     
-    # Google Public DNS DoH API
     url = f"https://dns.google/resolve?name={domain}&type=TXT"
     
     try:
@@ -20,41 +17,36 @@ def fetch_spf_record(domain):
             data = json.loads(response.read().decode())
             
         if 'Answer' not in data:
-            print(f"[!] No TXT records found for {domain}.")
+            ui.print_warning(f"No TXT records found for {domain}.")
             return None
 
-        # Filter for the SPF record (starts with "v=spf1")
         spf_records = []
         for answer in data['Answer']:
-            # TXT data often comes inside quotes, e.g. "v=spf1..."
-            txt_data = answer['data'].strip('"')
-            # Handle split TXT records (chunks combined by spaces)
-            txt_data = txt_data.replace('" "', '')
-            
+            txt_data = answer['data'].strip('"').replace('" "', '')
             if txt_data.startswith('v=spf1'):
                 spf_records.append(txt_data)
 
         if not spf_records:
-            print(f"[!] No SPF record found for {domain}.")
+            ui.print_warning(f"No SPF record found for {domain}.")
             return None
             
         if len(spf_records) > 1:
-            print(f"[!] WARNING: Multiple SPF records found! This is invalid.")
+            ui.print_warning(f"Multiple SPF records found! This is invalid.")
             for r in spf_records:
                 print(f"    - {r}")
-            return spf_records[0] # Return the first one for analysis
+            return spf_records[0] 
             
         return spf_records[0]
 
     except Exception as e:
-        print(f"[!] Error fetching DNS: {e}")
+        ui.print_error(f"Fetching DNS: {e}")
         return None
 
 def analyze_spf(spf_string):
     """
     Analyzes the SPF string for syntax errors and security best practices.
     """
-    print(f"\n--- Analysis for: {spf_string} ---")
+    ui.print_sub_header(f"Analysis for: {spf_string}")
     issues = []
     warnings = []
     
@@ -63,18 +55,14 @@ def analyze_spf(spf_string):
         issues.append("Record does not start with 'v=spf1'")
     
     # 2. Lookup Counting (Approximation)
-    # The limit is 10 DNS lookups. Mechanisms that trigger lookups: include, a, mx, ptr, exists, redirect
     lookup_mechanisms = ['include:', 'a:', 'mx:', 'ptr:', 'exists:', 'redirect=']
-    # Plain 'a' and 'mx' also count
     tokens = spf_string.split()
     lookup_count = 0
     
     for token in tokens:
-        # Check specific modifiers
         for mech in lookup_mechanisms:
             if token.startswith(mech):
                 lookup_count += 1
-        # Check standalone 'a' and 'mx'
         if token == 'a' or token == 'mx':
             lookup_count += 1
             
@@ -90,33 +78,18 @@ def analyze_spf(spf_string):
     elif not (tokens[-1].endswith("-all") or tokens[-1].endswith("~all") or "redirect=" in tokens[-1]):
         issues.append("Record does not end with a strict policy ('-all' or '~all').")
 
-    # 4. Deprecated Mechanisms
     if "ptr" in spf_string:
         warnings.append("The 'ptr' mechanism is deprecated and should not be used.")
 
     # Report
     if not issues and not warnings:
-        print("✅ Status: Valid & Secure")
+        ui.print_success("Status: Valid & Secure")
     else:
         if issues:
-            print("❌ Critical Issues:")
+            print(f"{ui.Colors.RED}❌ Critical Issues:{ui.Colors.RESET}")
             for i in issues:
                 print(f"   - {i}")
         if warnings:
-            print("⚠️  Warnings:")
+            print(f"{ui.Colors.YELLOW}⚠️  Warnings:{ui.Colors.RESET}")
             for w in warnings:
                 print(f"   - {w}")
-
-def main():
-    parser = argparse.ArgumentParser(description="Check SPF record syntax and security.")
-    parser.add_argument('domain', help="Domain name to check (e.g., google.com)")
-    
-    args = parser.parse_args()
-    
-    record = fetch_spf_record(args.domain)
-    
-    if record:
-        analyze_spf(record)
-
-if __name__ == "__main__":
-    main()

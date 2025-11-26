@@ -5,18 +5,7 @@ import os
 import getpass
 
 # Import your tool modules
-# Ensure these files are in the same directory or properly installed
-from mailops import dmarc_parser, spf_check, blacklist_monitor, dkim_gen, imap_fetcher
-
-# --- Styling for Help Menu ---
-class Colors:
-    HEADER = '\033[95m'
-    BLUE = '\033[94m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    RED = '\033[91m'
-    RESET = '\033[0m'
-    BOLD = '\033[1m'
+from mailops import dmarc_parser, spf_check, blacklist_monitor, dkim_gen, imap_fetcher, ui
 
 def load_config():
     config = configparser.ConfigParser()
@@ -29,10 +18,17 @@ def cmd_fetch(args, config):
     server = args.server or config.get('imap', 'server', fallback='imap.mail.me.com')
     
     if not email_addr:
-        print("[!] Error: Email not configured in config.ini or --email argument.")
+        ui.print_error("Email not configured in config.ini or --email argument.")
         return
 
-    pwd = config.get('imap', 'password', fallback=None)
+    # PRIORITY 1: Environment Variable (Secure & Automation friendly)
+    pwd = os.environ.get("MAILOPS_PASSWORD")
+
+    # PRIORITY 2: Config File (Convenient but risky if committed)
+    if not pwd:
+        pwd = config.get('imap', 'password', fallback=None)
+
+    # PRIORITY 3: Interactive Prompt (Safest for local manual use)
     if not pwd:
         print(f"Enter App Password for {email_addr} (hidden):")
         try:
@@ -44,14 +40,13 @@ def cmd_fetch(args, config):
 
 def cmd_report(args, config):
     """Handles DMARC analysis."""
-    # Default to current directory if not specified, or config
     target = args.path or config.get('general', 'download_dir', fallback='./dmarc_reports')
     
     if not os.path.exists(target):
-         print(f"{Colors.YELLOW}[!] Path not found: {target}{Colors.RESET}")
+         ui.print_warning(f"Path not found: {target}")
          return
 
-    print(f"[*] Analyzing reports in: {target}")
+    ui.print_info(f"Analyzing reports in: {target}")
 
     all_records = []
     files = []
@@ -65,22 +60,20 @@ def cmd_report(args, config):
                     files.append(os.path.join(root, f))
     
     if not files:
-        print("[-] No DMARC files found.")
+        ui.print_warning("No DMARC files found.")
         return
 
     for f in files:
-        # Use the updated dmarc_parser which returns status_msg/color
         records = dmarc_parser.parse_dmarc_xml(f)
         if records:
             all_records.extend(records)
             
     if args.alerts:
-        print(f"{Colors.YELLOW}[!] Filtering for failures/investigations only...{Colors.RESET}")
+        ui.print_warning("Filtering for failures/investigations only...")
         all_records = [r for r in all_records if r.get('status_msg', 'OK') != 'OK']
 
     # Output Routing
     if args.html:
-        # dmarc_parser.save_to_html(all_records, args.html) 
         pass 
     elif args.csv:
         dmarc_parser.save_to_csv(all_records, args.csv)
@@ -91,17 +84,18 @@ def cmd_check(args, config):
     """Runs a health check (SPF + Blacklist)."""
     domain = args.domain or config.get('monitor', 'domain', fallback=None)
     if not domain:
-        print("[!] Error: Domain not set in config.ini or argument.")
+        ui.print_error("Domain not set in config.ini or argument.")
         return
         
-    print(f"\n=== HEALTH CHECK: {domain} ===")
+    ui.print_header(f"HEALTH CHECK: {domain}")
     
-    print("\n[1] Checking SPF Record...")
+    ui.print_info("Checking SPF Record...")
     record = spf_check.fetch_spf_record(domain)
     if record:
         spf_check.analyze_spf(record)
     
-    print("\n[2] Checking Blacklist Status...")
+    print("") # Spacer
+    ui.print_info("Checking Blacklist Status...")
     blacklist_monitor.run_check(domain)
 
 def cmd_dkim(args, config):
@@ -112,26 +106,26 @@ def cmd_dkim(args, config):
 def main():
     # --- Custom Help Text with Examples ---
     epilog_text = f"""
-{Colors.HEADER}COMMON USAGE EXAMPLES:{Colors.RESET}
-  {Colors.BOLD}1. Analyze a specific folder of reports:{Colors.RESET}
+{ui.Colors.HEADER}COMMON USAGE EXAMPLES:{ui.Colors.RESET}
+  {ui.Colors.BOLD}1. Analyze a specific folder of reports:{ui.Colors.RESET}
      python mailops.py report /Users/userx/Desktop/DMARC_Log
 
-  {Colors.BOLD}2. Analyze just one file:{Colors.RESET}
+  {ui.Colors.BOLD}2. Analyze just one file:{ui.Colors.RESET}
      python mailops.py report /Users/userx/Desktop/report.xml
 
-  {Colors.BOLD}3. Show ONLY failures (Investigate/Blocked):{Colors.RESET}
-     python mailops.py report /Users/userx/Desktop/DMARC_Log --alerts
+  {ui.Colors.BOLD}3. Show ONLY failures (Investigate/Blocked):{ui.Colors.RESET}
+     python mailops.py report --alerts
 
-  {Colors.BOLD}4. Check your Domain Health (SPF + Blacklists):{Colors.RESET}
+  {ui.Colors.BOLD}4. Check your Domain Health (SPF + Blacklists):{ui.Colors.RESET}
      python mailops.py check beaubremer.com
 
-  {Colors.BOLD}5. Fetch new reports from email:{Colors.RESET}
+  {ui.Colors.BOLD}5. Fetch new reports from email:{ui.Colors.RESET}
      python mailops.py fetch
 
-{Colors.HEADER}LEGEND (for Report):{Colors.RESET}
-  {Colors.GREEN}OK{Colors.RESET}           : Authenticated and safe.
-  {Colors.YELLOW}BLOCKED{Colors.RESET}      : Spoofing attempt blocked by policy.
-  {Colors.RED}INVESTIGATE{Colors.RESET}  : Authentication failed, email likely delivered.
+{ui.Colors.HEADER}LEGEND (for Report):{ui.Colors.RESET}
+  {ui.Colors.GREEN}OK{ui.Colors.RESET}           : Authenticated and safe.
+  {ui.Colors.YELLOW}BLOCKED{ui.Colors.RESET}      : Spoofing attempt blocked by policy.
+  {ui.Colors.RED}INVESTIGATE{ui.Colors.RESET}  : Authentication failed, email likely delivered.
 """
 
     parser = argparse.ArgumentParser(

@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mail-ops-scripts"
+version = "2.2.0"
+description = "A unified operational toolkit for email server administration and DMARC analysis."
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+  {name = "Beau Bremer", email = "beau.bremer@tutamial.com"}
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Communications :: Email :: Mail Transport Agents",
+    "Topic :: System :: Systems Administration",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/knowoneactual/mail-ops-scripts"
+"Bug Tracker" = "https://github.com/knowoneactual/mail-ops-scripts/issues"
+
+[tool.black]
+line-length = 100
+target-version = ['py38']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+line_length = 100

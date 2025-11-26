@@ -2,7 +2,7 @@
 
 First off, thanks for taking the time to contribute! 🚀
 
-We welcome contributions from the community to help improve this project.
+Welcome all contributions from the community to help improve this project.
 
 ## How to Contribute
 
@@ -21,7 +21,7 @@ Have an idea for a new feature or improvement?
 1.  **Fork the Repo**: Click the "Fork" button in the top right corner.
 2.  **Clone your Fork**:
     ```bash
-    git clone [https://github.com/YOUR-USERNAME/YOUR-PROJECT.git](https://github.com/YOUR-USERNAME/YOUR-PROJECT.git)
+    git clone https://github.com/YOUR-USERNAME/mail-ops-scripts.git
     ```
 3.  **Create a Branch**:
     ```bash
@@ -31,13 +31,16 @@ Have an idea for a new feature or improvement?
 5.  **Test Your Changes**: Ensure everything runs as expected.
 6.  **Push and PR**: Push your branch to your fork and open a Pull Request against the `main` branch.
 
-### Bash Scripting
+### Python Development Guidelines
+I aim for clean, modern, and portable Python code.
 
-We aim for clean, safe, and portable Bash code.
-
-  * **Linting**: This project uses a CI workflow to strictly enforce [ShellCheck](https://www.shellcheck.net/).
-  * **Requirement**: All Pull Requests must pass the linting workflow before they can be merged. We recommend running `shellcheck` locally before pushing.
-  * **Indentation**: Use 4 spaces for indentation.
+* **Standard Library Only**: This project strives to have **zero external dependencies** to ensure maximum portability. Please avoid adding `pip install` requirements unless absolutely necessary and discussed in an issue first.
+* **Style & Formatting**:
+    * We follow [PEP 8](https://peps.python.org/pep-0008/) guidelines.
+    * Code should be formatted using **Black** or similar auto-formatters.
+    * Use 4 spaces for indentation.
+* **Type Hinting**: We encourage modern Python type hints (e.g., `def my_func(name: str) -> bool:`) to improve readability and tooling support.
+* **Linting**: We recommend running `flake8` or `ruff` locally to catch syntax errors and undefined variables before pushing.
 
 ## License
 

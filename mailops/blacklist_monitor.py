@@ -1,8 +1,9 @@
-import sys
+# mailops/blacklist_monitor.py
 import json
 import urllib.request
 import argparse
 import ipaddress
+from . import ui  # Import the new UI module
 
 # Common RBLs
 RBL_PROVIDERS = [
@@ -55,7 +56,7 @@ def run_check(target_input):
         if not target_ip:
             return
 
-    print(f"[*] Checking Blacklist Status for: {target_ip}")
+    ui.print_sub_header(f"Blacklist Status for: {target_ip}")
     print("-" * 60)
     print(f"{'RBL Provider':<30} | {'Status':<10}")
     print("-" * 60)
@@ -72,9 +73,9 @@ def run_check(target_input):
             issues += 1
     print("-" * 60)
     if issues == 0:
-        print("🎉 Good news! This IP is not listed on the checked RBLs.")
+        ui.print_success("Great! This IP is not listed on the checked RBLs.")
     else:
-        print(f"Warning: This IP is listed on {issues} blacklists.")
+        ui.print_warning(f"This IP is listed on {issues} blacklists.")
 
 def main():
     parser = argparse.ArgumentParser(description="Check RBL status.")
