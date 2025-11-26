@@ -11,11 +11,12 @@ from . import ui  # Import the new UI module
 
 IP_CACHE = {}
 
+
 def resolve_ip(ip_address):
     """Resolves IP to Hostname with caching."""
     if ip_address in IP_CACHE:
         return IP_CACHE[ip_address]
-    
+
     try:
         socket.setdefaulttimeout(2)
         hostname, _, _ = socket.gethostbyaddr(ip_address)
@@ -26,34 +27,38 @@ def resolve_ip(ip_address):
         IP_CACHE[ip_address] = result
         return result
 
+
 def analyze_record(spf, dkim, disposition):
     """
     Determines the status and color based on DMARC results.
     Returns: (Action_String, Color_Code)
     """
-    if spf == 'pass' or dkim == 'pass':
+    if spf == "pass" or dkim == "pass":
         return "OK", ui.Colors.GREEN
-    
-    if disposition in ['quarantine', 'reject']:
+
+    if disposition in ["quarantine", "reject"]:
         return "BLOCKED (Spoofing)", ui.Colors.YELLOW
-    
+
     return "INVESTIGATE", ui.Colors.RED
 
+
 # --- Core Logic ---
+
 
 def parse_dmarc_xml(file_path):
     tree = None
     filename = os.path.basename(file_path)
     records_data = []
-    
+
     try:
-        if file_path.endswith('.gz'):
-            with gzip.open(file_path, 'rb') as f:
+        if file_path.endswith(".gz"):
+            with gzip.open(file_path, "rb") as f:
                 tree = ET.parse(f)
-        elif file_path.endswith('.zip'):
-            with zipfile.ZipFile(file_path, 'r') as z:
-                xml_files = [n for n in z.namelist() if n.lower().endswith('.xml')]
-                if not xml_files: return []
+        elif file_path.endswith(".zip"):
+            with zipfile.ZipFile(file_path, "r") as z:
+                xml_files = [n for n in z.namelist() if n.lower().endswith(".xml")]
+                if not xml_files:
+                    return []
                 with z.open(xml_files[0]) as f:
                     tree = ET.parse(f)
         else:
@@ -63,51 +68,54 @@ def parse_dmarc_xml(file_path):
         ui.print_error(f"Processing '{filename}': {e}")
         return []
 
-    org_name = root.findtext('.//org_name') or "Unknown Org"
-    
-    date_range = root.find('.//date_range')
+    org_name = root.findtext(".//org_name") or "Unknown Org"
+
+    date_range = root.find(".//date_range")
     if date_range is not None:
-        begin_ts = int(date_range.findtext('begin', 0))
-        end_ts = int(date_range.findtext('end', 0))
-        begin_date = datetime.fromtimestamp(begin_ts).strftime('%Y-%m-%d')
-        end_date = datetime.fromtimestamp(end_ts).strftime('%Y-%m-%d')
+        begin_ts = int(date_range.findtext("begin", 0))
+        end_ts = int(date_range.findtext("end", 0))
+        begin_date = datetime.fromtimestamp(begin_ts).strftime("%Y-%m-%d")
+        end_date = datetime.fromtimestamp(end_ts).strftime("%Y-%m-%d")
     else:
         begin_date = end_date = "Unknown"
 
-    records = root.findall('record')
+    records = root.findall("record")
     if not records:
-        return [] 
+        return []
 
     for record in records:
-        row = record.find('row')
-        source_ip = row.findtext('source_ip')
-        count = row.findtext('count')
-        disposition = row.find('.//policy_evaluated/disposition').text
-        
-        spf = record.find('.//auth_results/spf/result')
+        row = record.find("row")
+        source_ip = row.findtext("source_ip")
+        count = row.findtext("count")
+        disposition = row.find(".//policy_evaluated/disposition").text
+
+        spf = record.find(".//auth_results/spf/result")
         spf_res = spf.text if spf is not None else "none"
-        
-        dkim = record.find('.//auth_results/dkim/result')
+
+        dkim = record.find(".//auth_results/dkim/result")
         dkim_res = dkim.text if dkim is not None else "none"
 
         hostname = resolve_ip(source_ip)
         status_msg, status_color = analyze_record(spf_res, dkim_res, disposition)
 
-        records_data.append({
-            'org_name': org_name,
-            'date': begin_date,
-            'source_ip': source_ip,
-            'hostname': hostname,
-            'count': count,
-            'spf': spf_res,
-            'dkim': dkim_res,
-            'disposition': disposition,
-            'status_msg': status_msg,
-            'status_color': status_color,
-            'file': filename
-        })
-        
+        records_data.append(
+            {
+                "org_name": org_name,
+                "date": begin_date,
+                "source_ip": source_ip,
+                "hostname": hostname,
+                "count": count,
+                "spf": spf_res,
+                "dkim": dkim_res,
+                "disposition": disposition,
+                "status_msg": status_msg,
+                "status_color": status_color,
+                "file": filename,
+            }
+        )
+
     return records_data
+
 
 def print_to_console(all_data):
     if not all_data:
@@ -116,31 +124,50 @@ def print_to_console(all_data):
 
     current_file = None
     header_fmt = "{:<20} | {:<30} | {:<5} | {:<6} | {:<6} | {:<15}"
-    row_fmt    = "{:<20} | {:<30} | {:<5} | {:<6} | {:<6} | {:<15}"
+    row_fmt = "{:<20} | {:<30} | {:<5} | {:<6} | {:<6} | {:<15}"
 
     for row in all_data:
-        if row['file'] != current_file:
-            current_file = row['file']
+        if row["file"] != current_file:
+            current_file = row["file"]
             ui.print_sub_header(f"Report: {row['org_name']} ({row['date']})")
             print("-" * 95)
-            print(ui.Colors.HEADER + header_fmt.format("Source IP", "Hostname", "Cnt", "SPF", "DKIM", "Analysis") + ui.Colors.RESET)
+            print(
+                ui.Colors.HEADER
+                + header_fmt.format("Source IP", "Hostname", "Cnt", "SPF", "DKIM", "Analysis")
+                + ui.Colors.RESET
+            )
             print("-" * 95)
-        
-        host_display = (row['hostname'][:27] + '..') if len(row['hostname']) > 29 else row['hostname']
-        
-        line = row_fmt.format(
-            row['source_ip'], host_display, row['count'], row['spf'], row['dkim'], row['status_msg']
+
+        host_display = (
+            (row["hostname"][:27] + "..") if len(row["hostname"]) > 29 else row["hostname"]
         )
-        print(row['status_color'] + line + ui.Colors.RESET)
+
+        line = row_fmt.format(
+            row["source_ip"], host_display, row["count"], row["spf"], row["dkim"], row["status_msg"]
+        )
+        print(row["status_color"] + line + ui.Colors.RESET)
+
 
 def save_to_csv(all_data, output_file):
-    if not all_data: return
-    
-    clean_data = [{k: v for k, v in r.items() if k != 'status_color'} for r in all_data]
-    headers = ['org_name', 'date', 'source_ip', 'hostname', 'count', 'spf', 'dkim', 'disposition', 'status_msg', 'file']
-    
+    if not all_data:
+        return
+
+    clean_data = [{k: v for k, v in r.items() if k != "status_color"} for r in all_data]
+    headers = [
+        "org_name",
+        "date",
+        "source_ip",
+        "hostname",
+        "count",
+        "spf",
+        "dkim",
+        "disposition",
+        "status_msg",
+        "file",
+    ]
+
     try:
-        with open(output_file, 'w', newline='') as f:
+        with open(output_file, "w", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=headers)
             writer.writeheader()
             writer.writerows(clean_data)

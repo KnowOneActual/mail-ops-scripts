@@ -12,8 +12,9 @@ RBL_PROVIDERS = [
     "bl.spamcop.net",
     "b.barracudacentral.org",
     "dnsbl.sorbs.net",
-    "ips.backscatterer.org"
+    "ips.backscatterer.org",
 ]
+
 
 def resolve_domain(domain):
     print(f"[*] Resolving IP for: {domain}...", end=" ", flush=True)
@@ -21,10 +22,10 @@ def resolve_domain(domain):
     try:
         with urllib.request.urlopen(url) as response:
             data = json.loads(response.read().decode())
-        if 'Answer' in data:
-            for answer in data['Answer']:
-                if answer['type'] == 1:
-                    ip = answer['data']
+        if "Answer" in data:
+            for answer in data["Answer"]:
+                if answer["type"] == 1:
+                    ip = answer["data"]
                     print(f"Found {ip}")
                     return ip
         print("\n[!] Error: No A record found.")
@@ -33,6 +34,7 @@ def resolve_domain(domain):
         print(f"\n[!] DNS Lookup Error: {e}")
         return None
 
+
 def check_rbl(ip_address, rbl_domain):
     try:
         reversed_ip = ".".join(reversed(ip_address.split(".")))
@@ -40,11 +42,12 @@ def check_rbl(ip_address, rbl_domain):
         url = f"https://dns.google/resolve?name={query}&type=A"
         with urllib.request.urlopen(url) as response:
             data = json.loads(response.read().decode())
-        if 'Answer' in data:
-            return data['Answer'][0]['data']
+        if "Answer" in data:
+            return data["Answer"][0]["data"]
         return None
     except Exception as e:
         return f"Error: {e}"
+
 
 def run_check(target_input):
     """Orchestrates the check logic so other scripts can call it."""
@@ -61,7 +64,7 @@ def run_check(target_input):
     print("-" * 60)
     print(f"{'RBL Provider':<30} | {'Status':<10}")
     print("-" * 60)
-    
+
     issues = 0
     for rbl in RBL_PROVIDERS:
         res = check_rbl(target_ip, rbl)
@@ -78,11 +81,13 @@ def run_check(target_input):
     else:
         ui.print_warning(f"This IP is listed on {issues} blacklists.")
 
+
 def main():
     parser = argparse.ArgumentParser(description="Check RBL status.")
-    parser.add_argument('target', help="IP address or Domain")
+    parser.add_argument("target", help="IP address or Domain")
     args = parser.parse_args()
     run_check(args.target)
+
 
 if __name__ == "__main__":
     main()
