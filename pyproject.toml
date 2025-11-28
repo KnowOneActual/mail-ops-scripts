@@ -1,7 +1,3 @@
-[build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "mail-ops-scripts"
 version = "2.2.0"
@@ -24,6 +20,17 @@ classifiers = [
 "Homepage" = "https://github.com/knowoneactual/mail-ops-scripts"
 "Bug Tracker" = "https://github.com/knowoneactual/mail-ops-scripts/issues"
 
+[project.scripts]
+mailops = "mailops.__main__:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "black>=23.0", 
+    "isort>=5.12",
+    "mypy>=1.5",
+]
+
 [tool.black]
 line-length = 100
 target-version = ['py38']
@@ -32,11 +39,3 @@ include = '\.pyi?$'
 [tool.isort]
 profile = "black"
 line_length = 100
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.0",
-    "black>=23.0",
-    "isort>=5.12",
-    "mypy>=1.5",
-]
