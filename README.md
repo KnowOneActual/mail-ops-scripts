@@ -59,10 +59,10 @@ mailops --help
 
 ## 📦 INSTALL
 
-```
 
-# Global CLI
 ```bash
+# Global CLI
+
 pip install mail-ops-scripts
 ```
 
@@ -76,7 +76,7 @@ black . && isort . && mypy .
 
 ## 📋 Commands Reference
 
-```
+```text
 # DKIM Key Generation
 mailops dkim example.com                    # default selector
 mailops dkim example.com --selector=mail    # custom selector
