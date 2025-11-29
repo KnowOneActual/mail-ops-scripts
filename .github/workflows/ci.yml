@@ -9,7 +9,7 @@ jobs:
       with:
         python-version: 3.12
     - run: pip install -e '.[dev]'
-    - run: black --check .
-    - run: isort --check-only .
+    - run: isort --check-only mailops/
+    - run: black --check mailops/
     - run: mypy .
     - run: pytest

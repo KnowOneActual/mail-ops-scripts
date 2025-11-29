@@ -13,7 +13,7 @@ from datetime import datetime
 
 from . import ui  # Import the new UI module
 
-IP_CACHE = {}
+IP_CACHE: dict[str, str] = {}
 
 
 def resolve_ip(ip_address):

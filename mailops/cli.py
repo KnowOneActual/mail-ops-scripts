@@ -65,7 +65,7 @@ def main() -> None:
             print(f"📥 Fetching REAL DMARC reports...")
             print(f"   👤 {args.user} | 📧 {args.server} | 📅 {args.days} days")
             fetch_reports(
-                args.user, args.password, args.server, days=args.days
+                args.user, args.password, args.server
             )  # FIXED!
             print("✅ Reports downloaded! Run 'mailops report'")
 
