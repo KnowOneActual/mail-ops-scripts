@@ -8,7 +8,7 @@ def test_package_version():
     """Verify the package version matches pyproject.toml."""
     try:
         pkg_version = version("mail-ops-scripts")
-        assert pkg_version == "2.2.0", f"Expected 2.2.0, got {pkg_version}"
+        assert pkg_version == "2.3.0", f"Expected 2.2.0, got {pkg_version}"
     except PackageNotFoundError:
         pytest.skip("mail-ops-scripts not installed in environment")
 
