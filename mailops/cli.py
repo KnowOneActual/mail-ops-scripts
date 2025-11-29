@@ -64,9 +64,7 @@ def main() -> None:
         if args.command == "fetch":
             print(f"📥 Fetching REAL DMARC reports...")
             print(f"   👤 {args.user} | 📧 {args.server} | 📅 {args.days} days")
-            fetch_reports(
-                args.user, args.password, args.server
-            )  # FIXED!
+            fetch_reports(args.user, args.password, args.server)  # FIXED!
             print("✅ Reports downloaded! Run 'mailops report'")
 
         elif args.command == "report":
