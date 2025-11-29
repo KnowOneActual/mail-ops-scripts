@@ -1,5 +1,6 @@
-import sys
 import os
+import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import argparse
 import email
@@ -125,7 +126,9 @@ def fetch_reports(username, password, server, folder="INBOX"):
                 content_type = part.get_content_type()
 
                 # LOGIC: It must look like a DMARC report (XML, GZIP, ZIP)
-                valid_extension = filename and filename.lower().endswith((".xml", ".gz", ".zip"))
+                valid_extension = filename and filename.lower().endswith(
+                    (".xml", ".gz", ".zip")
+                )
                 valid_mime = any(x in content_type for x in ["gzip", "zip", "xml"])
 
                 if is_attachment or valid_extension or valid_mime:

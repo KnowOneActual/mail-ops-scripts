@@ -5,7 +5,14 @@ import os
 import sys
 
 # Import your tool modules
-from mailops import blacklist_monitor, dkim_gen, dmarc_parser, imap_fetcher, spf_check, ui
+from mailops import (
+    blacklist_monitor,
+    dkim_gen,
+    dmarc_parser,
+    imap_fetcher,
+    spf_check,
+    ui,
+)
 
 
 def load_config():
@@ -43,7 +50,9 @@ def cmd_fetch(args, config):
 
 def cmd_report(args, config):
     """Handles DMARC analysis."""
-    target = args.path or config.get("general", "download_dir", fallback="./dmarc_reports")
+    target = args.path or config.get(
+        "general", "download_dir", fallback="./dmarc_reports"
+    )
 
     if not os.path.exists(target):
         ui.print_warning(f"Path not found: {target}")
@@ -149,7 +158,9 @@ def main():
 
     # 2. Report
     report_p = subparsers.add_parser("report", help="Analyze DMARC data")
-    report_p.add_argument("path", nargs="?", help="Path to reports (default: ./dmarc_reports)")
+    report_p.add_argument(
+        "path", nargs="?", help="Path to reports (default: ./dmarc_reports)"
+    )
     report_p.add_argument("--csv", help="Export to CSV")
     report_p.add_argument("--html", help="Export to HTML Dashboard")
     report_p.add_argument("--alerts", action="store_true", help="Show failures only")

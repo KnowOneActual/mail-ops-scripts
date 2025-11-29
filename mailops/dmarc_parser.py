@@ -1,5 +1,6 @@
-import sys
 import os
+import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # mailops/dmarc_parser.py
 import csv
@@ -136,17 +137,26 @@ def print_to_console(all_data):
             print("-" * 95)
             print(
                 ui.Colors.HEADER
-                + header_fmt.format("Source IP", "Hostname", "Cnt", "SPF", "DKIM", "Analysis")
+                + header_fmt.format(
+                    "Source IP", "Hostname", "Cnt", "SPF", "DKIM", "Analysis"
+                )
                 + ui.Colors.RESET
             )
             print("-" * 95)
 
         host_display = (
-            (row["hostname"][:27] + "..") if len(row["hostname"]) > 29 else row["hostname"]
+            (row["hostname"][:27] + "..")
+            if len(row["hostname"]) > 29
+            else row["hostname"]
         )
 
         line = row_fmt.format(
-            row["source_ip"], host_display, row["count"], row["spf"], row["dkim"], row["status_msg"]
+            row["source_ip"],
+            host_display,
+            row["count"],
+            row["spf"],
+            row["dkim"],
+            row["status_msg"],
         )
         print(row["status_color"] + line + ui.Colors.RESET)
 

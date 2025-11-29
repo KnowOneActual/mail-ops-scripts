@@ -1,9 +1,11 @@
 #!/Users/userx/PY_Projects/mail-ops-scripts/.venv/bin/python
-import sys
 import os
+import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Use the REAL main function from cli.py
 from mailops.cli import main
+
 if __name__ == '__main__':
     main()

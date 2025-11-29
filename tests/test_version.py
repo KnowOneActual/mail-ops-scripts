@@ -1,6 +1,8 @@
 # tests/test_version.py
+from importlib.metadata import PackageNotFoundError, version
+
 import pytest
-from importlib.metadata import version, PackageNotFoundError
+
 
 def test_package_version():
     """Verify the package version matches pyproject.toml."""
@@ -10,10 +12,11 @@ def test_package_version():
     except PackageNotFoundError:
         pytest.skip("mail-ops-scripts not installed in environment")
 
+
 def test_package_metadata():
     """Verify basic package metadata is accessible."""
     from importlib.metadata import metadata
-    
+
     pkg_meta = metadata("mail-ops-scripts")
     assert pkg_meta["Name"] == "mail-ops-scripts"
     assert "MIT" in pkg_meta.get("License", "")

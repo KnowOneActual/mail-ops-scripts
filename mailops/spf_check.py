@@ -1,5 +1,6 @@
-import sys
 import os
+import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # mailops/spf_check.py
 import argparse
@@ -78,11 +79,15 @@ def analyze_spf(spf_string):
 
     # 3. Security Checks
     if "+all" in tokens:
-        issues.append("Usage of '+all' allows the entire internet to spoof your domain.")
+        issues.append(
+            "Usage of '+all' allows the entire internet to spoof your domain."
+        )
     elif "?all" in tokens:
         warnings.append("Usage of '?all' (Neutral) provides no protection.")
     elif not (
-        tokens[-1].endswith("-all") or tokens[-1].endswith("~all") or "redirect=" in tokens[-1]
+        tokens[-1].endswith("-all")
+        or tokens[-1].endswith("~all")
+        or "redirect=" in tokens[-1]
     ):
         issues.append("Record does not end with a strict policy ('-all' or '~all').")
 
