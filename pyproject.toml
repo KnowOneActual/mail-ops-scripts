@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mail-ops-scripts"
-version = "2.2.0"
+version = "2.3.0"
 description = "A unified operational toolkit for email server administration and DMARC analysis."
 readme = "README.md"
 requires-python = ">=3.8"
@@ -35,5 +35,5 @@ Repository = "https://github.com/KnowOneActual/mail-ops-scripts"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["mailops*"]
-exclude = ["assets*"]
+exclude = ["assets*", "assets*"]
 namespaces = false

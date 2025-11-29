@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.3.0] - 2025-11-28
+**🎉 PyPI PRODUCTION SHIPPED!**
+
+### 🚀 Released
+- **LIVE on PyPI**: https://pypi.org/project/mail-ops-scripts/2.3.0/
+- **Global install**: `pip install mail-ops-scripts`
+- **4x LIVE commands**: `mailops dkim`, `spf`, `report`, `fetch`
+
+### 🟢 CI/CD Complete
+- **GitHub Actions**: 🟢 GREEN (black/isort/mypy/pytest)
+- **Dev workflow**: `pip install -e '.[dev]'`
+- **Badges**: ![CI](https://github.com/KnowOneActual/mail-ops-scripts/actions/workflows/ci.yml/badge.svg)
+
+### 📚 Enterprise Documentation
+- **README.md**: Logo + badges + LIVE command table
+- **CONTRIBUTING.md**: VS Code Python/HTML/Bash workflow
+- **pyproject.toml**: Perfect (license + dev deps)
+
+### 🎯 Achievements
+
 ## [2.2.0] - 2025-11-28
 **🎉 PRODUCTION CLI COMPLETE!**
 
