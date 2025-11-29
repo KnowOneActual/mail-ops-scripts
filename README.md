@@ -3,143 +3,105 @@
 
 # Mail Ops Scripts
 
-
+[![PyPI Version](https://img.shields.io/pypi/v/mail-ops-scripts?color=blue&style=flat-square)](https://pypi.org/project/mail-ops-scripts/)
 [![CI](https://github.com/KnowOneActual/mail-ops-scripts/actions/workflows/ci.yml/badge.svg)](https://github.com/KnowOneActual/mail-ops-scripts/actions/workflows/ci.yml)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+**A unified operational toolkit for email server administration, security analysis, and reporting.**
+
+### 🚀 Now available on PyPI!
+You can now install `mailops` globally with a single command.
 
 </div>
 
+---
 
-A unified operational toolkit for email server administration, security analysis, and reporting.
+## ⚡ Quick Start
 
-## 🚀 COMMANDS STATUS
-
-| Command | Status | Tech |
-|---------|--------|------|
-| `mailops dkim example.com` | ✅ **FULLY LIVE** | OpenSSL key generation |
-| `mailops spf google.com` | ✅ **FULLY LIVE** | Google DNS-over-HTTPS |
-| `mailops report --alerts` | ✅ **FILE READY** | DMARC XML parsing |
-| `mailops fetch --user...` | ✅ **CREDS READY** | IMAPlib + Gmail/Outlook |
-
-✅ LIVE = Real code executing (DKIM keys generated, SPF DNS lookups, XML parsing)
-⏳ TODO = Structure ready but needs real implementation
-❌ BROKEN = Import errors or crashes
-
-
-## 🎯 PRODUCTION WORKFLOW
-
-```
-📥 1. Fetch reports          → mailops fetch --user you@gmail.com --password app-pass --days 7
-📊 2. Analyze + alerts       → mailops report --alerts
-🔍 3. SPF validation         → mailops spf yourdomain.com
-🔑 4. DKIM key generation    → mailops dkim yourdomain.com --selector=mail
-```
-
-## 💾 Quick Start
-
-```
-# Clone + setup
-git clone https://github.com/knowoneactual/mail-ops-scripts
-cd mail-ops-scripts
-
-# Virtual environment
-python -m venv .venv
-source .venv/bin/activate  # Linux/Mac
-# .venv/bin/Activate.ps1   # Windows PowerShell
-
-# Install
-pip install -e .
-
-# Test
-mailops --help
-```
-
-## 📦 INSTALL
-
+Get the CLI installed directly from PyPI and start managing your mail operations in seconds.
 
 ```bash
-# Global CLI
-
+# Install via pip
 pip install mail-ops-scripts
-```
 
-# Dev workflow
+# Verify installation
+mailops --help
+````
+
+## 🛠 The Toolkit
+
+`mailops` is a single binary aimed at simplifying the fragmented world of email admin. No more juggling random bash scripts or online DNS checkers.
+
+| Command | Description |
+| :--- | :--- |
+| **`mailops fetch`** | Connects to Gmail/Exchange via IMAP to download DMARC reports. |
+| **`mailops report`** | Parses XML reports into readable stats or CSVs. |
+| **`mailops spf`** | Validates SPF records using Google's DNS-over-HTTPS (secure & cached). |
+| **`mailops dkim`** | Generates 2048-bit RSA keys and formats the exact DNS TXT record you need. |
+
+## 🚀 Common Workflows
+
+### 1\. The "Monday Morning" Check
+
+Grab the last week's DMARC reports from your dedicated inbox and see if anyone is spoofing you.
+
 ```bash
-git clone https://github.com/KnowOneActual/mail-ops-scripts
+# 1. Download reports from your dmarc@ account
+mailops fetch --user admin@example.com --password "app-password" --days 7
+
+# 2. Analyze the data (view alerts only)
+mailops report --alerts
+```
+
+### 2\. Setting Up a New Domain
+
+Spinning up a new sender? Generate your security keys and validate your DNS instantly.
+
+```bash
+# 1. Generate DKIM keys (outputs to ./default.private)
+mailops dkim example.com --selector=mail
+
+# 2. Verify your SPF record is live and valid
+mailops spf example.com
+```
+
+## 📦 Developer Setup
+
+If you want to contribute or modify the scripts, here is how to get the dev environment running locally.
+
+```bash
+# Clone and setup
+git clone [https://github.com/knowoneactual/mail-ops-scripts](https://github.com/knowoneactual/mail-ops-scripts)
 cd mail-ops-scripts
-pip install -e '.[dev]'
-black . && isort . && mypy .
-```
 
-## 📋 Commands Reference
+# Create virtual env
+python -m venv .venv
+source .venv/bin/activate
 
-```text
-# DKIM Key Generation
-mailops dkim example.com                    # default selector
-mailops dkim example.com --selector=mail    # custom selector
-
-# SPF Checking  
-mailops spf google.com
-mailops spf yourdomain.com
-
-# DMARC Reports
-mailops report                          # All XML files
-mailops report --alerts                 # Failures only
-mailops report --csv output.csv         # Export CSV
-
-# IMAP Fetching
-mailops fetch --user you@gmail.com --password app-password --days 7
-mailops fetch --user user@domain.com --server imap.domain.com --days 30
-```
-
-## 🎉 Features
-
-- ✅ **Real OpenSSL DKIM generation** → `selector.private` files
-- ✅ **Google DNS-over-HTTPS SPF** → Production DNS lookups
-- ✅ **DMARC XML parsing** → Console + CSV output
-- ✅ **IMAP report fetching** → Gmail/Outlook/Exchange ready
-- ✅ **Global CLI install** → `~/.local/bin/mailops`
-- ✅ **VS Code workflow** → Python/HTML/Bash integration
-- ✅ **Production ready** → Error handling + help text
-
-## 🛠 Development
-
-```
-# Dev dependencies
+# Install in editable mode with dev dependencies
 pip install -e '.[dev]'
 
-# Code quality
-black .
-isort .
-mypy .
+# Run the test suite
 pytest
 ```
 
-## 📦 Build & Publish
-
-```
-pip install build twine
-python -m build
-twine upload dist/*
-```
-
-## 📖 Changelog
-[CHANGELOG.md](CHANGELOG.md)
-
 ## 🤝 Contributing
-[CONTRIBUTING.md](CONTRIBUTING.md)
+
+We want to keep this lightweight and portable.
+
+  * **Standard Libs First**: We try to avoid external dependencies to ensure the tool runs anywhere.
+  * **Code Style**: We use `black` and `isort`.
+  * **See details**: Check [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 
 ## 📄 License
-[MIT](LICENSE)
+
+MIT © [KnowOneActual](LICENSE)
 
 ---
 **Made with ❤️ for email operations**  
-[knowoneactual/mail-ops-scripts](https://github.com/knowoneactual/mail-ops-scripts)
-
-
 
 ## 🗺️ Roadmap
 [![Project Board](https://github.com/users/KnowOneActual/projects/2/views/1)](https://github.com/users/KnowOneActual/projects/2/views/1)
