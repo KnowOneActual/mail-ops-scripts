@@ -140,3 +140,6 @@ twine upload dist/*
 [knowoneactual/mail-ops-scripts](https://github.com/knowoneactual/mail-ops-scripts)
 
 
+
+## 🗺️ Roadmap
+[![Project Board](https://github.com/users/KnowOneActual/projects/2/views/1)](https://github.com/users/KnowOneActual/projects/2/views/1)
