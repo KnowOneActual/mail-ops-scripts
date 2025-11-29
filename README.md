@@ -57,6 +57,23 @@ pip install -e .
 mailops --help
 ```
 
+## 📦 INSTALL
+
+```
+
+# Global CLI
+```bash
+pip install mail-ops-scripts
+```
+
+# Dev workflow
+```bash
+git clone https://github.com/KnowOneActual/mail-ops-scripts
+cd mail-ops-scripts
+pip install -e '.[dev]'
+black . && isort . && mypy .
+```
+
 ## 📋 Commands Reference
 
 ```
