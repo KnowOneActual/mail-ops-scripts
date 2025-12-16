@@ -24,6 +24,12 @@ def main() -> None:
   2. mailops report --alerts
   3. mailops spf yourdomain.com
   4. mailops dkim yourdomain.com
+
+📊 REPORT EXAMPLES:
+  mailops report                           # Show all records in table
+  mailops report --alerts                  # Show only failures/spoofing
+  mailops report --csv results.csv         # Export to CSV file
+  mailops report --alerts --csv alerts.csv # Export only failures to CSV
         """,
     )
 
@@ -39,11 +45,29 @@ def main() -> None:
     fetch_parser.add_argument("--server", default="imap.gmail.com", help="IMAP server")
 
     # REPORT
-    report_parser = subparsers.add_parser("report", help="Analyze DMARC reports")
-    report_parser.add_argument(
-        "--alerts", action="store_true", help="Show only failures"
+    report_parser = subparsers.add_parser(
+        "report",
+        help="Analyze DMARC reports",
+        description="""Analyze DMARC XML reports (supports .xml, .xml.gz, .zip formats)
+
+Examples:
+  mailops report              # Display all records in formatted table
+  mailops report --alerts     # Show only authentication failures & spoofing attempts
+  mailops report --csv out.csv        # Export all records to CSV
+  mailops report --alerts --csv alerts.csv  # Export only failures to CSV
+        """,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    report_parser.add_argument("--csv", help="Export to CSV")
+    report_parser.add_argument(
+        "--alerts",
+        action="store_true",
+        help="Show only failures and spoofing attempts (BLOCKED or INVESTIGATE status)",
+    )
+    report_parser.add_argument(
+        "--csv",
+        metavar="FILE",
+        help="Export results to CSV file (e.g., results.csv)",
+    )
 
     # DKIM
     dkim_parser = subparsers.add_parser("dkim", help="Generate DKIM keys")
