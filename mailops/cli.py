@@ -9,7 +9,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from mailops.dkim_gen import generate_keys
-from mailops.dmarc_parser import parse_dmarc_xml
+from mailops.dmarc_parser import parse_dmarc_xml, print_to_console, save_to_csv
 from mailops.imap_fetcher import fetch_reports
 from mailops.spf_check import fetch_spf_record
 
@@ -69,12 +69,37 @@ def main() -> None:
 
         elif args.command == "report":
             print("📊 Analyzing REAL DMARC reports...")
-            xml_files = glob.glob("*.xml") + glob.glob("reports/*.xml")
+            # FIXED: Include .gz and .zip files in search
+            xml_files = (
+                glob.glob("*.xml") + 
+                glob.glob("reports/*.xml") +
+                glob.glob("*.gz") +
+                glob.glob("reports/*.gz") +
+                glob.glob("*.zip") +
+                glob.glob("reports/*.zip")
+            )
+            
             if xml_files:
                 print(f"Found {len(xml_files)} XML files:")
+                all_data = []  # FIXED: Accumulate all records
+                
                 for xml_file in xml_files:
                     print(f"  📄 {xml_file}")
-                    parse_dmarc_xml(xml_file)
+                    records = parse_dmarc_xml(xml_file)  # FIXED: Capture returned data
+                    all_data.extend(records)  # FIXED: Add to collection
+                
+                # FIXED: Apply alert filter if requested
+                if args.alerts:
+                    all_data = [r for r in all_data if r["status_msg"] in ["BLOCKED (Spoofing)", "INVESTIGATE"]]
+                    if not all_data:
+                        print("✅ No security alerts found - all records passed authentication!")
+                        return
+                
+                # FIXED: Display results
+                if args.csv:
+                    save_to_csv(all_data, args.csv)
+                else:
+                    print_to_console(all_data)
             else:
                 print("❌ No XML files found. Run 'mailops fetch' first!")
 
