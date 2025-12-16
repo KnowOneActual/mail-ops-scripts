@@ -95,30 +95,37 @@ Examples:
             print("📊 Analyzing REAL DMARC reports...")
             # FIXED: Include .gz and .zip files in search
             xml_files = (
-                glob.glob("*.xml") + 
-                glob.glob("reports/*.xml") +
-                glob.glob("*.gz") +
-                glob.glob("reports/*.gz") +
-                glob.glob("*.zip") +
-                glob.glob("reports/*.zip")
+                glob.glob("*.xml")
+                + glob.glob("reports/*.xml")
+                + glob.glob("*.gz")
+                + glob.glob("reports/*.gz")
+                + glob.glob("*.zip")
+                + glob.glob("reports/*.zip")
             )
-            
+
             if xml_files:
                 print(f"Found {len(xml_files)} XML files:")
                 all_data = []  # FIXED: Accumulate all records
-                
+
                 for xml_file in xml_files:
                     print(f"  📄 {xml_file}")
                     records = parse_dmarc_xml(xml_file)  # FIXED: Capture returned data
                     all_data.extend(records)  # FIXED: Add to collection
-                
+
                 # FIXED: Apply alert filter if requested
                 if args.alerts:
-                    all_data = [r for r in all_data if r["status_msg"] in ["BLOCKED (Spoofing)", "INVESTIGATE"]]
+                    all_data = [
+                        r
+                        for r in all_data
+                        if r["status_msg"] in ["BLOCKED (Spoofing)", "INVESTIGATE"]
+                    ]
                     if not all_data:
-                        print("✅ No security alerts found - all records passed authentication!")
+                        print(
+                            "✅ No security alerts found - "
+                            "all records passed authentication!"
+                        )
                         return
-                
+
                 # FIXED: Display results
                 if args.csv:
                     save_to_csv(all_data, args.csv)
