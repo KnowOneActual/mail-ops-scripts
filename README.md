@@ -29,7 +29,7 @@ pip install mail-ops-scripts
 
 # Verify installation
 mailops --help
-````
+```
 
 ## 🛠 The Toolkit
 
@@ -38,13 +38,13 @@ mailops --help
 | Command | Description |
 | :--- | :--- |
 | **`mailops fetch`** | Connects to Gmail/Exchange via IMAP to download DMARC reports. |
-| **`mailops report`** | Parses XML reports into readable stats or CSVs. |
+| **`mailops report`** | Parses XML reports (.xml, .gz, .zip) into readable tables or CSVs with alerts. |
 | **`mailops spf`** | Validates SPF records using Google's DNS-over-HTTPS (secure & cached). |
 | **`mailops dkim`** | Generates 2048-bit RSA keys and formats the exact DNS TXT record you need. |
 
 ## 🚀 Common Workflows
 
-### 1\. The "Monday Morning" Check
+### 1. The "Monday Morning" Check
 
 Grab the last week's DMARC reports from your dedicated inbox and see if anyone is spoofing you.
 
@@ -56,7 +56,7 @@ mailops fetch --user admin@example.com --password "app-password" --days 7
 mailops report --alerts
 ```
 
-### 2\. Setting Up a New Domain
+### 2. Setting Up a New Domain
 
 Spinning up a new sender? Generate your security keys and validate your DNS instantly.
 
@@ -68,13 +68,55 @@ mailops dkim example.com --selector=mail
 mailops spf example.com
 ```
 
+### 3. Generate DMARC Analysis Report
+
+Export your DMARC data to CSV for security team review or further analysis.
+
+```bash
+# Display all records in formatted table
+mailops report
+
+# Export all records to CSV
+mailops report --csv dmarc_analysis.csv
+
+# Export only authentication failures to CSV
+mailops report --alerts --csv security_alerts.csv
+```
+
+## 📊 Report Command Features
+
+The `mailops report` command analyzes DMARC XML reports and provides:
+
+- **Formatted Tables**: Color-coded analysis of SPF, DKIM, and DMARC policy results
+- **Alert Filtering**: `--alerts` flag to show only authentication failures and spoofing attempts
+- **CSV Export**: `--csv` flag to save results for further analysis
+- **Compressed Format Support**: Automatically handles `.xml`, `.xml.gz`, and `.zip` files
+- **Organized Output**: Groups results by organization and date range
+
+### Report Output Example
+
+```bash
+$ mailops report
+📊 Analyzing REAL DMARC reports...
+Found 5 XML files:
+  📄 enterprise.protection.outlook.com!example.com!1765324800!1765411200.xml.gz
+  ...
+
+Report: enterprise.protection.outlook.com (2025-12-01)
+─────────────────────────────────────────────────────────────────────────
+Source IP           | Hostname                   | Cnt | SPF  | DKIM | Analysis
+─────────────────────────────────────────────────────────────────────────
+192.168.1.1         | mail.example.com           | 42  | pass | pass | OK
+10.0.0.5            | suspicious.domain          | 3   | fail | fail | INVESTIGATE
+```
+
 ## 📦 Developer Setup
 
 If you want to contribute or modify the scripts, here is how to get the dev environment running locally.
 
 ```bash
 # Clone and setup
-git clone [https://github.com/knowoneactual/mail-ops-scripts](https://github.com/knowoneactual/mail-ops-scripts)
+git clone https://github.com/knowoneactual/mail-ops-scripts
 cd mail-ops-scripts
 
 # Create virtual env
@@ -86,22 +128,30 @@ pip install -e '.[dev]'
 
 # Run the test suite
 pytest
+
+# Format code with black
+black mailops/
+
+# Sort imports with isort
+isort mailops/
 ```
 
 ## 🤝 Contributing
 
 We want to keep this lightweight and portable.
 
-  * **Standard Libs First**: We try to avoid external dependencies to ensure the tool runs anywhere.
-  * **Code Style**: We use `black` and `isort`.
-  * **See details**: Check [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
+* **Standard Libs First**: We try to avoid external dependencies to ensure the tool runs anywhere.
+* **Code Style**: We use `black` and `isort`.
+* **See details**: Check [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 
 ## 📄 License
 
 MIT © [KnowOneActual](LICENSE)
 
 ---
-**Made with ❤️ for email operations**  
+
+**Made with ❤️ for email operations**
 
 ## 🗺️ Roadmap
+
 [![Project Board](https://github.com/users/KnowOneActual/projects/2/views/1)](https://github.com/users/KnowOneActual/projects/2/views/1)
