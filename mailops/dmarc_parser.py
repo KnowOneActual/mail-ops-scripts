@@ -99,6 +99,9 @@ def parse_dmarc_xml(file_path):
         dkim = record.find(".//auth_results/dkim/result")
         dkim_res = dkim.text if dkim is not None else "none"
 
+        # Extract envelope_to field
+        envelope_to = record.findtext(".//envelope_to") or "Unknown"
+
         hostname = resolve_ip(source_ip)
         status_msg, status_color = analyze_record(spf_res, dkim_res, disposition)
 
@@ -108,6 +111,7 @@ def parse_dmarc_xml(file_path):
                 "date": begin_date,
                 "source_ip": source_ip,
                 "hostname": hostname,
+                "envelope_to": envelope_to,
                 "count": count,
                 "spf": spf_res,
                 "dkim": dkim_res,
@@ -127,31 +131,38 @@ def print_to_console(all_data):
         return
 
     current_file = None
-    header_fmt = "{:<20} | {:<30} | {:<5} | {:<6} | {:<6} | {:<15}"
-    row_fmt = "{:<20} | {:<30} | {:<5} | {:<6} | {:<6} | {:<15}"
+    header_fmt = "{:<20} | {:<20} | {:<30} | {:<5} | {:<6} | {:<6} | {:<15}"
+    row_fmt = "{:<20} | {:<20} | {:<30} | {:<5} | {:<6} | {:<6} | {:<15}"
 
     for row in all_data:
         if row["file"] != current_file:
             current_file = row["file"]
             ui.print_sub_header(f"Report: {row['org_name']} ({row['date']})")
-            print("-" * 95)
+            print("-" * 130)
             print(
                 ui.Colors.HEADER
                 + header_fmt.format(
-                    "Source IP", "Hostname", "Cnt", "SPF", "DKIM", "Analysis"
+                    "Source IP", "Envelope To", "Hostname", "Cnt", "SPF", "DKIM", "Analysis"
                 )
                 + ui.Colors.RESET
             )
-            print("-" * 95)
+            print("-" * 130)
 
         host_display = (
             (row["hostname"][:27] + "..")
             if len(row["hostname"]) > 29
             else row["hostname"]
         )
+        
+        envelope_display = (
+            (row["envelope_to"][:17] + "..")
+            if len(row["envelope_to"]) > 19
+            else row["envelope_to"]
+        )
 
         line = row_fmt.format(
             row["source_ip"],
+            envelope_display,
             host_display,
             row["count"],
             row["spf"],
@@ -171,6 +182,7 @@ def save_to_csv(all_data, output_file):
         "date",
         "source_ip",
         "hostname",
+        "envelope_to",
         "count",
         "spf",
         "dkim",
