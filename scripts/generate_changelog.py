@@ -130,7 +130,7 @@ class ChangelogGenerator:
             lines.append(f"- {commit.description} ([{commit.sha}](https://github.com/{self.repo_owner}/{self.repo_name}/commit/{commit.sha}))")
         return "\n".join(lines)
 
-    def generate(self, version: str, date: str = None) -> str:
+    def generate(self, version: str, date: str | None = None) -> str:
         """Generate changelog content"""
         if date is None:
             date = datetime.now().strftime("%Y-%m-%d")
