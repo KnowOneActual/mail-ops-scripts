@@ -99,8 +99,13 @@ def parse_dmarc_xml(file_path):
         dkim = record.find(".//auth_results/dkim/result")
         dkim_res = dkim.text if dkim is not None else "none"
 
-        # Extract envelope_to field
-        envelope_to = record.findtext(".//envelope_to") or "Unknown"
+        # Extract envelope_to field from identifiers section
+        # Location: feedback/record/identifiers/envelope_to
+        identifiers = record.find("identifiers")
+        if identifiers is not None:
+            envelope_to = identifiers.findtext("envelope_to") or "Unknown"
+        else:
+            envelope_to = "Unknown"
 
         hostname = resolve_ip(source_ip)
         status_msg, status_color = analyze_record(spf_res, dkim_res, disposition)
