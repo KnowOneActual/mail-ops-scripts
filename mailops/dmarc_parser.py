@@ -1,7 +1,3 @@
-import os
-import sys
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # mailops/dmarc_parser.py
 import csv
 import gzip
@@ -160,9 +156,7 @@ def print_to_console(all_data):
             print("-" * 130)
 
         host_display = (
-            (row["hostname"][:27] + "..")
-            if len(row["hostname"]) > 29
-            else row["hostname"]
+            (row["hostname"][:27] + "..") if len(row["hostname"]) > 29 else row["hostname"]
         )
 
         envelope_display = (
