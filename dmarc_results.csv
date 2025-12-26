@@ -1,0 +1,2 @@
+org_name,date,source_ip,hostname,envelope_to,count,spf,dkim,disposition,status_msg,file
+Enterprise Outlook,2025-12-23,57.103.73.211,p-west3-cluster1-host8-snip4-10.eps.apple.com,outsource.net,1,pass,pass,none,OK,enterprise.protection.outlook.com!beaubremer.com!1766534400!1766620800.xml
