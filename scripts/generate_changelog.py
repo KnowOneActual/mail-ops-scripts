@@ -96,7 +96,7 @@ class ChangelogGenerator:
                     "git",
                     "log",
                     f"--max-count={count}",
-                    '--format=%H|%s|%ai',
+                    "--format=%H|%s|%ai",
                 ],
                 capture_output=True,
                 text=True,
@@ -127,7 +127,9 @@ class ChangelogGenerator:
         """Format a changelog section"""
         lines = [f"### {section_name}\n"]
         for commit in commits:
-            lines.append(f"- {commit.description} ([{commit.sha}](https://github.com/{self.repo_owner}/{self.repo_name}/commit/{commit.sha}))")
+            lines.append(
+                f"- {commit.description} ([{commit.sha}](https://github.com/{self.repo_owner}/{self.repo_name}/commit/{commit.sha}))"
+            )
         return "\n".join(lines)
 
     def generate(self, version: str, date: str | None = None) -> str:
@@ -140,7 +142,17 @@ class ChangelogGenerator:
         lines = [f"## [{version}] - {date}\n"]
 
         # Standard changelog section order
-        section_order = ["Added", "Changed", "Fixed", "Performance", "Documentation", "Tests", "Maintenance", "CI/CD", "Other"]
+        section_order = [
+            "Added",
+            "Changed",
+            "Fixed",
+            "Performance",
+            "Documentation",
+            "Tests",
+            "Maintenance",
+            "CI/CD",
+            "Other",
+        ]
 
         for section in section_order:
             if section in self.organized and self.organized[section]:
