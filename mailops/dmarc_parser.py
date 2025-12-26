@@ -147,7 +147,13 @@ def print_to_console(all_data):
             print(
                 ui.Colors.HEADER
                 + header_fmt.format(
-                    "Source IP", "Envelope To", "Hostname", "Cnt", "SPF", "DKIM", "Analysis"
+                    "Source IP",
+                    "Envelope To",
+                    "Hostname",
+                    "Cnt",
+                    "SPF",
+                    "DKIM",
+                    "Analysis",
                 )
                 + ui.Colors.RESET
             )
@@ -158,7 +164,7 @@ def print_to_console(all_data):
             if len(row["hostname"]) > 29
             else row["hostname"]
         )
-        
+
         envelope_display = (
             (row["envelope_to"][:17] + "..")
             if len(row["envelope_to"]) > 19
@@ -181,7 +187,9 @@ def save_to_csv(all_data, output_file):
     if not all_data:
         return
 
-    clean_data = [{k: v for k, v in r.items() if k != "status_color"} for r in all_data]
+    clean_data = [
+        {k: v for k, v in r.items() if k != "status_color"} for r in all_data
+    ]
     headers = [
         "org_name",
         "date",
