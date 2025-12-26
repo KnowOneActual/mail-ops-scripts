@@ -1,5 +1,20 @@
 # PyPI Release Guide for mail-ops-scripts v2.5.0
 
+## 🎉 Release Status: ✅ COMPLETED
+
+**Released**: December 26, 2025  
+**Version**: 2.5.0  
+**PyPI**: https://pypi.org/project/mail-ops-scripts/2.5.0/
+
+### What's Live
+- ✅ envelope_to field support
+- ✅ Console output with new column
+- ✅ CSV export enhancement
+- ✅ Complete documentation
+- ✅ Available via `pip install mail-ops-scripts`
+
+---
+
 ## Prerequisites
 
 1. **PyPI Account**: You need a PyPI account at https://pypi.org/
@@ -23,7 +38,7 @@ username = __token__
 password = pypi-AgEIcHlwaS5vcmc...  # Your PyPI API token
 ```
 
-## Step-by-Step Release Process
+## Step-by-Step Release Process (Reference)
 
 ### 1. Verify Version is Updated ✅
 
@@ -40,14 +55,14 @@ Already updated in CHANGELOG.md with:
 - Console output changes
 - CSV export enhancements
 
-### 3. Create Git Tag
+### 3. Create Git Tag ✅
 
 ```bash
 git tag -a v2.5.0 -m "Release v2.5.0 - Add envelope_to field support"
 git push origin v2.5.0
 ```
 
-### 4. Build Distribution Packages
+### 4. Build Distribution Packages ✅
 
 ```bash
 python -m build
@@ -57,19 +72,19 @@ This creates:
 - `dist/mail-ops-scripts-2.5.0.tar.gz` (source distribution)
 - `dist/mail-ops-scripts-2.5.0-py3-none-any.whl` (wheel)
 
-### 5. Verify Build Integrity
+### 5. Verify Build Integrity ✅
 
 ```bash
 twine check dist/*
 ```
 
-Should output:
+Output:
 ```
 Checking distribution dist/mail-ops-scripts-2.5.0.tar.gz: Passed
 Checking distribution dist/mail-ops-scripts-2.5.0-py3-none-any.whl: Passed
 ```
 
-### 6. Upload to TestPyPI (Optional but Recommended)
+### 6. Upload to TestPyPI (Optional)
 
 Test first to catch any issues:
 
@@ -82,33 +97,33 @@ Then test install:
 pip install --index-url https://test.pypi.org/simple/ mail-ops-scripts==2.5.0
 ```
 
-### 7. Upload to Production PyPI
-
-Once you're confident in the build:
+### 7. Upload to Production PyPI ✅
 
 ```bash
 twine upload dist/*
 ```
 
-You'll be prompted for credentials (or uses `~/.pypirc`):
+Credentials:
 ```
 Enter your username: __token__
 Enter your password: pypi-AgEIcHlwaS5vcmc...
 ```
 
-### 8. Verify Release on PyPI
+### 8. Verify Release on PyPI ✅
 
 Visit: https://pypi.org/project/mail-ops-scripts/
 
-Should show:
+Shows:
 - Version: **2.5.0**
 - Release Date: **2025-12-26**
 - Latest Release with envelope_to support
 
 ### 9. Create GitHub Release
 
+Manually or via GitHub CLI:
+
 ```bash
-# GitHub CLI (if installed)
+# Using GitHub CLI (if installed)
 gh release create v2.5.0 -t "Release v2.5.0" -n "envelope_to Field Support"
 ```
 
@@ -120,9 +135,9 @@ Or manually:
 5. Description: Copy from CHANGELOG.md
 6. Click "Publish release"
 
-## Installation Verification
+## Installation Verification ✅
 
-After successful upload, users should be able to:
+Users can now install:
 
 ```bash
 # Install latest version
@@ -137,47 +152,9 @@ Or:
 mailops --version
 ```
 
-## Complete Command Sequence (Fast Path)
-
-```bash
-# 1. Verify everything locally
-python -m mailops report
-
-# 2. Build packages
-python -m build
-
-# 3. Check builds
-twine check dist/*
-
-# 4. Create git tag
-git tag -a v2.5.0 -m "Release v2.5.0 - Add envelope_to field support"
-git push origin v2.5.0
-
-# 5. Upload to PyPI
-twine upload dist/*
-
-# 6. Clean up old builds
-rm -rf build/ dist/ *.egg-info
-```
-
-## Troubleshooting
-
-### Issue: "Invalid distribution on server"
-- Verify with: `twine check dist/*`
-- Check pyproject.toml format
-- Ensure version matches regex: `\d+\.\d+\.\d+`
-
-### Issue: "403 Forbidden"
-- Verify PyPI token is correct
-- Check token hasn't expired
-- Use `__token__` as username (not your account name)
-
-### Issue: "Already exists"
-- Version already uploaded; increment to v2.5.1 or delete from PyPI and retry
-
 ## What Gets Released
 
-The following files are included in the distribution:
+The distribution includes:
 
 ```
 mail-ops-scripts-2.5.0/
@@ -199,21 +176,36 @@ mail-ops-scripts-2.5.0/
 └── debug_xml_structure.py   ✨ (New diagnostic tool)
 ```
 
-## Post-Release Checklist
+## Post-Release Checklist ✅
 
-- [ ] Version bumped to 2.5.0 in pyproject.toml ✅
-- [ ] CHANGELOG.md updated ✅
-- [ ] Git tagged with v2.5.0
-- [ ] Distribution packages built and verified
-- [ ] Uploaded to PyPI
-- [ ] GitHub Release created
-- [ ] Documentation updated ✅
-- [ ] Community announcement made
-- [ ] Fresh installation tested: `pip install mail-ops-scripts==2.5.0`
+- ✅ Version bumped to 2.5.0 in pyproject.toml
+- ✅ CHANGELOG.md updated and released
+- ✅ Git tagged with v2.5.0
+- ✅ Distribution packages built and verified
+- ✅ Uploaded to PyPI
+- ✅ Documentation updated
+- ✅ Fresh installation tested
+
+## Troubleshooting (Reference)
+
+### Issue: "Invalid distribution on server"
+- Verify with: `twine check dist/*`
+- Check pyproject.toml format
+- Ensure version matches regex: `\d+\.\d+\.\d+`
+
+### Issue: "403 Forbidden"
+- Verify PyPI token is correct
+- Check token hasn't expired
+- Use `__token__` as username (not your account name)
+
+### Issue: "Already exists"
+- Version already uploaded; increment to v2.5.1 or contact PyPI support
 
 ## Questions?
 
 Reference:
+- PyPI Project: https://pypi.org/project/mail-ops-scripts/
+- GitHub Repo: https://github.com/KnowOneActual/mail-ops-scripts
 - PyPI Guide: https://packaging.python.org/tutorials/packaging-python-projects/
 - Twine Docs: https://twine.readthedocs.io/
 - setuptools: https://setuptools.readthedocs.io/
