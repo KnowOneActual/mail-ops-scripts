@@ -33,6 +33,8 @@ pip install mail-ops-scripts
 mailops --help
 ```
 
+> **Note:** If you don't have `pipx` yet, you can install it via Homebrew (`brew install pipx`) on macOS, or follow the [official installation guide](https://pypa.github.io/pipx/).
+
 ## 🛠 The Toolkit
 
 `mailops` is a single binary aimed at simplifying the fragmented world of email admin. No more juggling random bash scripts or online DNS checkers.
