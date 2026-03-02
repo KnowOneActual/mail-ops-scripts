@@ -26,10 +26,11 @@ def main() -> None:
   4. mailops dkim yourdomain.com
 
 📊 REPORT EXAMPLES:
-  mailops report                           # Show all records in table
+  mailops report                           # Show all records in current directory
+  mailops report ./logs                    # Analyze reports in a specific folder
+  mailops report report.xml                # Analyze a single XML file
   mailops report --alerts                  # Show only failures/spoofing
   mailops report --csv results.csv         # Export to CSV file
-  mailops report --alerts --csv alerts.csv # Export only failures to CSV
         """,
     )
 
