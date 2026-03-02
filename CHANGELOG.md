@@ -10,6 +10,20 @@ All notable changes to this project will be documented in this file.
 - Report scheduling/automation features
 - Integration with external security tools
 
+## [2.5.2] - 2026-03-01
+
+### Added
+- **Custom path support for reports**: The `report` command now accepts an optional path argument.
+  - Can point to a specific directory containing reports (e.g., `mailops report ./logs`).
+  - Can point to a single XML, GZ, or ZIP file (e.g., `mailops report data.xml`).
+  - Defaults to the current directory if no path is provided.
+  - Recursively checks `reports/` subdirectory if a directory is specified.
+
+## [2.5.1] - 2026-03-01
+
+### Fixed
+- Improved PyPI distribution metadata and installation documentation.
+
 ## [2.5.0] - 2025-12-26
 
 ### Added

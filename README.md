@@ -38,7 +38,7 @@ mailops --help
 | Command | Description |
 | :--- | :--- |
 | **`mailops fetch`** | Connects to Gmail/Exchange via IMAP to download DMARC reports. |
-| **`mailops report`** | Parses XML reports (.xml, .gz, .zip) into readable tables or CSVs with alerts. |
+| **`mailops report`** | Parses XML reports (.xml, .gz, .zip) from a folder or file into readable tables or CSVs. |
 | **`mailops spf`** | Validates SPF records using Google's DNS-over-HTTPS (secure & cached). |
 | **`mailops dkim`** | Generates 2048-bit RSA keys and formats the exact DNS TXT record you need. |
 
@@ -70,17 +70,20 @@ mailops spf example.com
 
 ### 3. Generate DMARC Analysis Report
 
-Export your DMARC data to CSV for security team review or further analysis.
+Analyze reports in your current directory, a specific folder, or even a single file.
 
 ```bash
-# Display all records in formatted table
+# Display all records in current directory
 mailops report
+
+# Analyze reports in a specific folder
+mailops report ./my_logs/
+
+# Analyze a single XML file
+mailops report report.xml
 
 # Export all records to CSV
 mailops report --csv dmarc_analysis.csv
-
-# Export only authentication failures to CSV
-mailops report --alerts --csv security_alerts.csv
 ```
 
 ## 📊 Report Command Features

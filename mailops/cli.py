@@ -51,12 +51,19 @@ def main() -> None:
         description="""Analyze DMARC XML reports (supports .xml, .xml.gz, .zip formats)
 
 Examples:
-  mailops report              # Display all records in formatted table
+  mailops report              # Display all records in current directory
+  mailops report ./logs       # Analyze reports in a specific folder
+  mailops report report.xml   # Analyze a single XML file
   mailops report --alerts     # Show only authentication failures & spoofing attempts
   mailops report --csv out.csv        # Export all records to CSV
-  mailops report --alerts --csv alerts.csv  # Export only failures to CSV
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    report_parser.add_argument(
+        "path",
+        nargs="?",
+        default=".",
+        help="Path to XML file or directory containing reports (default: current directory)",
     )
     report_parser.add_argument(
         "--alerts",
@@ -92,19 +99,21 @@ Examples:
             print("✅ Reports downloaded! Run 'mailops report'")
 
         elif args.command == "report":
-            print("📊 Analyzing REAL DMARC reports...")
-            # FIXED: Include .gz and .zip files in search
-            xml_files = (
-                glob.glob("*.xml")
-                + glob.glob("reports/*.xml")
-                + glob.glob("*.gz")
-                + glob.glob("reports/*.gz")
-                + glob.glob("*.zip")
-                + glob.glob("reports/*.zip")
-            )
-
+            print(f"📊 Analyzing DMARC reports in: {args.path}")
+            
+            xml_files = []
+            if os.path.isfile(args.path):
+                xml_files = [args.path]
+            elif os.path.isdir(args.path):
+                extensions = ["*.xml", "*.gz", "*.zip"]
+                search_paths = [args.path, os.path.join(args.path, "reports")]
+                for s_path in search_paths:
+                    if os.path.isdir(s_path):
+                        for ext in extensions:
+                            xml_files.extend(glob.glob(os.path.join(s_path, ext)))
+            
             if xml_files:
-                print(f"Found {len(xml_files)} XML files:")
+                print(f"Found {len(xml_files)} files:")
                 all_data = []  # FIXED: Accumulate all records
 
                 for xml_file in xml_files:
