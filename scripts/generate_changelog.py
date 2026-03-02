@@ -11,13 +11,12 @@ Usage:
     python scripts/generate_changelog.py --draft      # Preview without writing
 """
 
+import argparse
 import subprocess
-import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Tuple
-import argparse
+from typing import Optional
 
 
 class CommitMessage:
@@ -84,10 +83,10 @@ class ChangelogGenerator:
     def __init__(self, repo_owner: str, repo_name: str):
         self.repo_owner = repo_owner
         self.repo_name = repo_name
-        self.commits: List[CommitMessage] = []
-        self.organized: Dict[str, List[CommitMessage]] = {}
+        self.commits: list[CommitMessage] = []
+        self.organized: dict[str, list[CommitMessage]] = {}
 
-    def fetch_commits(self, count: int = 50) -> List[CommitMessage]:
+    def fetch_commits(self, count: int = 50) -> list[CommitMessage]:
         """Fetch recent commits from git log"""
         try:
             # Use git log to get commits
@@ -113,7 +112,7 @@ class ChangelogGenerator:
             print(f"Error fetching commits: {e}", file=sys.stderr)
             return []
 
-    def organize_commits(self) -> Dict[str, List[CommitMessage]]:
+    def organize_commits(self) -> dict[str, list[CommitMessage]]:
         """Organize commits by type"""
         self.organized = {}
         for commit in self.commits:
@@ -123,7 +122,7 @@ class ChangelogGenerator:
             self.organized[section].append(commit)
         return self.organized
 
-    def format_section(self, section_name: str, commits: List[CommitMessage]) -> str:
+    def format_section(self, section_name: str, commits: list[CommitMessage]) -> str:
         """Format a changelog section"""
         lines = [f"### {section_name}\n"]
         for commit in commits:
@@ -132,7 +131,7 @@ class ChangelogGenerator:
             )
         return "\n".join(lines)
 
-    def generate(self, version: str, date: str | None = None) -> str:
+    def generate(self, version: str, date: Optional[str] = None) -> str:
         """Generate changelog content"""
         if date is None:
             date = datetime.now().strftime("%Y-%m-%d")
@@ -228,7 +227,7 @@ def main():
         print(f"Creating new changelog: {output_path}...")
 
     output_path.write_text(content)
-    print(f"\u2705 Changelog generated successfully!\n")
+    print("\u2705 Changelog generated successfully!\n")
     print("Preview:")
     print(new_content)
 

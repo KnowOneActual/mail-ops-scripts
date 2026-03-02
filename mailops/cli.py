@@ -64,7 +64,7 @@ Examples:
         "path",
         nargs="?",
         default=".",
-        help="Path to XML file or directory containing reports (default: current directory)",
+        help="Path to XML file or directory (default: current directory)",
     )
     report_parser.add_argument(
         "--alerts",
@@ -94,14 +94,14 @@ Examples:
 
     try:
         if args.command == "fetch":
-            print(f"📥 Fetching REAL DMARC reports...")
+            print("📥 Fetching REAL DMARC reports...")
             print(f"   👤 {args.user} | 📧 {args.server} | 📅 {args.days} days")
             fetch_reports(args.user, args.password, args.server)  # FIXED!
             print("✅ Reports downloaded! Run 'mailops report'")
 
         elif args.command == "report":
             print(f"📊 Analyzing DMARC reports in: {args.path}")
-            
+
             xml_files = []
             if os.path.isfile(args.path):
                 xml_files = [args.path]
@@ -112,7 +112,7 @@ Examples:
                     if os.path.isdir(s_path):
                         for ext in extensions:
                             xml_files.extend(glob.glob(os.path.join(s_path, ext)))
-            
+
             if xml_files:
                 print(f"Found {len(xml_files)} files:")
                 all_data = []  # FIXED: Accumulate all records

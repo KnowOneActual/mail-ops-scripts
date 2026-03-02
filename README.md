@@ -5,8 +5,7 @@
 
 [![PyPI Version](https://img.shields.io/pypi/v/mail-ops-scripts?color=blue&style=flat-square)](https://pypi.org/project/mail-ops-scripts/)
 [![CI](https://github.com/KnowOneActual/mail-ops-scripts/actions/workflows/ci.yml/badge.svg)](https://github.com/KnowOneActual/mail-ops-scripts/actions/workflows/ci.yml)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
+[![Linting: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -132,19 +131,17 @@ pip install -e '.[dev]'
 # Run the test suite
 pytest
 
-# Format code with black
-black mailops/
-
-# Sort imports with isort
-isort mailops/
+# Format and lint code with Ruff (fast & unified)
+ruff format .
+ruff check --fix .
 ```
 
 ## 🤝 Contributing
 
 We want to keep this lightweight and portable.
 
-* **Standard Libs First**: We try to avoid external dependencies to ensure the tool runs anywhere.
-* **Code Style**: We use `black` and `isort`.
+* **Standard Libs First**: Trying to avoid external dependencies to ensure the tool runs anywhere.
+* **Code Style**: Using**Ruff** for high-performance, unified linting and formatting.
 * **See details**: Check [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 
 ## 📄 License

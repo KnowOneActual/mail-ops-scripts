@@ -13,6 +13,10 @@ All notable changes to this project will be documented in this file.
 ## [2.5.2] - 2026-03-01
 
 ### Added
+- **Unified Linting and Formatting with Ruff**: Switched the project from `black`, `isort`, and `flake8` to **Ruff**.
+  - **Performance**: Significant speed improvements in CI and local development.
+  - **Unification**: Single tool for linting, formatting, and import sorting.
+  - **CI Integration**: Updated GitHub Actions to use `ruff check` and `ruff format`.
 - **Custom path support for reports**: The `report` command now accepts an optional path argument.
   - Can point to a specific directory containing reports (e.g., `mailops report ./logs`).
   - Can point to a single XML, GZ, or ZIP file (e.g., `mailops report data.xml`).

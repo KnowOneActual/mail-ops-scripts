@@ -18,12 +18,35 @@ classifiers = [
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0",
-    "black>=23.0", 
-    "isort>=5.12",
+    "ruff>=0.1.0",
     "mypy>=1.5",
     "build",
     "twine"
 ]
+
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "B", "C4", "UP"]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+exclude = [
+    '^build/',
+    '^dist/',
+    '^\.venv/',
+    '^venv/'
+]
+python_version = "3.9"
+strict = false
+ignore_missing_imports = true
+
 
 [project.scripts]
 mailops = "mailops.cli:main"

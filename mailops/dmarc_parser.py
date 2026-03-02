@@ -73,11 +73,9 @@ def parse_dmarc_xml(file_path):
     date_range = root.find(".//date_range")
     if date_range is not None:
         begin_ts = int(date_range.findtext("begin", 0))
-        end_ts = int(date_range.findtext("end", 0))
         begin_date = datetime.fromtimestamp(begin_ts).strftime("%Y-%m-%d")
-        end_date = datetime.fromtimestamp(end_ts).strftime("%Y-%m-%d")
     else:
-        begin_date = end_date = "Unknown"
+        begin_date = "Unknown"
 
     records = root.findall("record")
     if not records:

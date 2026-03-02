@@ -1,8 +1,6 @@
 import email
 import getpass
 import imaplib
-import sys
-from email.header import decode_header
 
 
 def debug_reports(username, password, server, folder="INBOX"):

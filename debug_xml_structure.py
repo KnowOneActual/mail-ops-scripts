@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Diagnostic script to inspect DMARC XML structure and locate envelope_to field"""
 
+import glob
 import gzip
+import sys
 import xml.etree.ElementTree as ET
 import zipfile
-import glob
-import sys
 
 
 def inspect_xml(file_path):
@@ -30,9 +30,9 @@ def inspect_xml(file_path):
         print(f"Error reading {file_path}: {e}")
         return
 
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print(f"File: {file_path}")
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
 
     # Print all unique element paths
     def get_all_paths(element, prefix=""):

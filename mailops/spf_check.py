@@ -3,7 +3,6 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # mailops/spf_check.py
-import argparse
 import json
 import urllib.request
 
@@ -37,7 +36,7 @@ def fetch_spf_record(domain):
             return None
 
         if len(spf_records) > 1:
-            ui.print_warning(f"Multiple SPF records found! This is invalid.")
+            ui.print_warning("Multiple SPF records found! This is invalid.")
             for r in spf_records:
                 print(f"    - {r}")
             return spf_records[0]

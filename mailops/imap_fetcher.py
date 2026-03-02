@@ -28,7 +28,7 @@ def get_safe_date(msg):
         try:
             date_obj = email.utils.parsedate_to_datetime(date_str)
             return date_obj.strftime("%Y-%m-%d")
-        except:
+        except Exception:
             pass
     return "unknown_date"
 

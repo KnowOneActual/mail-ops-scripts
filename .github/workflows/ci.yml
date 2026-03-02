@@ -9,7 +9,8 @@ jobs:
       with:
         python-version: 3.12
     - run: pip install -e '.[dev]'
-    - run: isort --check-only mailops/
-    - run: black --check mailops/
-    - run: mypy .
+    - run: ruff check .
+    - run: ruff format --check .
+    - run: mypy mailops/ scripts/
     - run: pytest
+

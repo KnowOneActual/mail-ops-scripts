@@ -37,10 +37,10 @@ I aim for clean, modern, and portable Python code.
 * **Standard Library Only**: This project strives to have **zero external dependencies** to ensure maximum portability. Please avoid adding `pip install` requirements unless absolutely necessary and discussed in an issue first.
 * **Style & Formatting**:
     * We follow [PEP 8](https://peps.python.org/pep-0008/) guidelines.
-    * Code should be formatted using **Black** or similar auto-formatters.
+    * Code should be formatted and linted using **Ruff** for high-performance, unified developer experience.
     * Use 4 spaces for indentation.
 * **Type Hinting**: We encourage modern Python type hints (e.g., `def my_func(name: str) -> bool:`) to improve readability and tooling support.
-* **Linting**: We recommend running `flake8` or `ruff` locally to catch syntax errors and undefined variables before pushing.
+* **Linting**: We use **Ruff** in our CI pipeline to catch syntax errors, undefined variables, and formatting issues. Please run `ruff check --fix .` and `ruff format .` before pushing.
 
 ## License
 

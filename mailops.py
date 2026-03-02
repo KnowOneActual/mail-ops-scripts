@@ -2,7 +2,6 @@ import argparse
 import configparser
 import getpass
 import os
-import sys
 
 # Import your tool modules
 from mailops import (
@@ -140,7 +139,7 @@ def main():
 {ui.Colors.HEADER}LEGEND (for Report):{ui.Colors.RESET}
   {ui.Colors.GREEN}OK{ui.Colors.RESET}           : Authenticated and safe.
   {ui.Colors.YELLOW}BLOCKED{ui.Colors.RESET}      : Spoofing attempt blocked by policy.
-  {ui.Colors.RED}INVESTIGATE{ui.Colors.RESET}  : Authentication failed, email likely delivered.
+  {ui.Colors.RED}INVESTIGATE{ui.Colors.RESET}  : Auth failed, email likely delivered.
 """
 
     parser = argparse.ArgumentParser(
