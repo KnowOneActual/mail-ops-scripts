@@ -23,7 +23,10 @@ You can now install `mailops` globally with a single command.
 Get the CLI installed directly from PyPI and start managing your mail operations in seconds.
 
 ```bash
-# Install via pip
+# Install via pipx (recommended for isolated CLI tools)
+pipx install mail-ops-scripts
+
+# Or via pip
 pip install mail-ops-scripts
 
 # Verify installation
